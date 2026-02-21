@@ -16,8 +16,25 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
     `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}`
   );
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(body || `Request failed (${res.status})`);
+    const text = await res.text();
+    let errorMessage = `Request failed (${res.status})`;
+    try {
+      const errorJson = JSON.parse(text);
+      if (errorJson.detail) {
+        // Handle cases where the detail itself is a stringified JSON (from FastAPI HttpException)
+        try {
+           const nestedJson = JSON.parse(errorJson.detail);
+           errorMessage = nestedJson.detail || errorJson.detail;
+        } catch {
+           errorMessage = errorJson.detail;
+        }
+      } else {
+        errorMessage = text;
+      }
+    } catch (e) {
+      errorMessage = text || errorMessage;
+    }
+    throw new Error(errorMessage);
   }
   const json = await res.json();
   if (!Array.isArray(json)) {
@@ -34,7 +51,7 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
 const Index = () => {
   const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string } | null>(null);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["imagery", params],
     queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate),
     enabled: !!params,
@@ -52,6 +69,10 @@ const Index = () => {
 
   const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string) => {
     setParams({ lat, lon, startDate, endDate });
+    // Force a refetch if the params are exactly the same and useQuery ignores the state update
+    if (params && params.lat === lat && params.lon === lon && params.startDate === startDate && params.endDate === endDate) {
+      refetch();
+    }
   };
 
   const canvasState = !params

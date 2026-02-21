@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { CalendarIcon, Loader2, Satellite } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
   const [lat, setLat] = useState("");
   const [lon, setLon] = useState("");
   const [date, setDate] = useState<Date>();
+  const [inputValue, setInputValue] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const isValid = () => {
     const latNum = parseFloat(lat);
@@ -34,6 +36,33 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
       lonNum <= 180 &&
       date !== undefined
     );
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+
+    // Attempt to parse YYYY-MM-DD
+    if (value.length === 10) {
+      const parsedDate = parse(value, "yyyy-MM-dd", new Date());
+      if (!isNaN(parsedDate.getTime())) {
+        setDate(parsedDate);
+      } else {
+        setDate(undefined);
+      }
+    } else {
+      setDate(undefined);
+    }
+  };
+
+  const handleCalendarSelect = (newDate: Date | undefined) => {
+    setDate(newDate);
+    if (newDate) {
+      setInputValue(format(newDate, "yyyy-MM-dd"));
+      setIsPopoverOpen(false);
+    } else {
+      setInputValue("");
+    }
   };
 
   const handleSubmit = () => {
@@ -87,25 +116,36 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
           <Label className="text-xs text-muted-foreground uppercase tracking-wider">
             Date
           </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:bg-secondary",
-                  !date && "text-muted-foreground/40"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Select date"}
-              </Button>
-            </PopoverTrigger>
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <div className="flex w-full items-center rounded-md border border-border/50 bg-background/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden transition-colors h-10">
+              <Input
+                type="text"
+                placeholder="YYYY-MM-DD"
+                value={inputValue}
+                onChange={handleInputChange}
+                className="border-0 focus-visible:ring-0 bg-transparent flex-1 rounded-none px-3"
+              />
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "px-3 rounded-none hover:bg-secondary shrink-0 h-10 border-l border-border/50",
+                    !date && "text-muted-foreground/40"
+                  )}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+            </div>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={handleCalendarSelect}
                 initialFocus
+                captionLayout="dropdown"
+                fromYear={2015}
+                toYear={2026}
                 className="p-3 pointer-events-auto"
               />
             </PopoverContent>

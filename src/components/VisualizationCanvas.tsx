@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Cloud, Loader2 } from "lucide-react";
 import { fromUrl } from "geotiff";
+import { Slider } from "@/components/ui/slider";
+import { format } from "date-fns";
 
 interface ImageryData {
   image_url: string;
@@ -13,7 +15,7 @@ type CanvasState = "empty" | "loading" | "loaded" | "error";
 
 interface VisualizationCanvasProps {
   state: CanvasState;
-  data?: ImageryData | null;
+  data?: ImageryData[] | null;
   errorMessage?: string;
 }
 
@@ -87,7 +89,7 @@ const TiffImage: React.FC<{ url: string; alt: string; className?: string }> = ({
       )}
       <canvas
         ref={canvasRef}
-        className="max-w-full max-h-[70vh] object-contain shadow-sm"
+        className="max-w-full max-h-[60vh] object-contain shadow-sm"
         aria-label={alt}
       />
     </div>
@@ -99,6 +101,15 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   data,
   errorMessage,
 }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Reset slider when new data arrives
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [data]);
+
+  const currentImage = data && data.length > 0 ? data[activeIndex] : null;
+
   return (
     <div className="relative flex-1 rounded-lg border border-border/30 overflow-hidden bg-background/50">
       {/* Empty State */}
@@ -123,32 +134,74 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
       )}
 
       {/* Loaded State */}
-      {state === "loaded" && data && (
-        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8 animate-[fade-in_0.6s_ease-out]">
-          <div className="relative max-w-full max-h-full rounded-lg overflow-hidden glow-cyan-sm border border-primary/20">
-            {(data.image_url.toLowerCase().endsWith(".tif") || data.image_url.toLowerCase().endsWith(".tiff")) ? (
+      {state === "loaded" && currentImage && data && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 animate-[fade-in_0.6s_ease-out] overflow-y-auto">
+          <div className="relative w-full max-w-4xl max-h-[65vh] rounded-lg overflow-hidden glow-cyan-sm border border-primary/20 flex justify-center">
+            {currentImage.image_url.toLowerCase().endsWith(".tif") || currentImage.image_url.toLowerCase().endsWith(".tiff") ? (
               <TiffImage
-                url={data.image_url}
-                alt={`Satellite imagery from ${data.satellite_name}`}
-                className="w-full h-[70vh] aspect-square"
+                url={currentImage.image_url}
+                alt={`Satellite imagery from ${currentImage.satellite_name}`}
+                className="w-full h-[65vh] aspect-square"
               />
             ) : (
               <img
-                src={data.image_url}
-                alt={`Satellite imagery from ${data.satellite_name}`}
-                className="max-w-full max-h-[70vh] object-contain"
+                src={currentImage.image_url}
+                alt={`Satellite imagery from ${currentImage.satellite_name}`}
+                className="max-w-full max-h-[65vh] object-contain"
               />
             )}
             {/* Status badge */}
             <div className="absolute top-3 right-3 glass rounded-full px-3 py-1.5 flex items-center gap-2 text-xs font-medium z-20 shadow-md">
               <span className="text-primary font-semibold">
-                {data.satellite_name}
+                {currentImage.satellite_name}
               </span>
               <span className="w-px h-3 bg-border/50" />
               <Cloud className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">
-                {data.cloud_cover.toFixed(2)}%
+                {currentImage.cloud_cover.toFixed(2)}%
               </span>
+            </div>
+          </div>
+
+          {/* Timeline Slider */}
+          <div className="w-full max-w-lg mt-6 flex items-center gap-2 bg-background/50 p-2 md:p-3 rounded-lg border border-border/50 backdrop-blur-sm shadow-sm">
+            <div className="text-sm font-medium text-foreground w-28 shrink-0 text-right pr-2">
+              {format(new Date(currentImage.date), "MMM d, yyyy")}
+            </div>
+
+            <button
+              onClick={() => setActiveIndex(Math.max(0, activeIndex - 1))}
+              disabled={activeIndex === 0}
+              className="p-1 rounded-md hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              aria-label="Previous image"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            {data.length > 1 ? (
+              <Slider
+                value={[activeIndex]}
+                min={0}
+                max={data.length - 1}
+                step={1}
+                onValueChange={(val) => setActiveIndex(val[0])}
+                className="flex-1 cursor-grab active:cursor-grabbing px-2"
+              />
+            ) : (
+              <div className="flex-1 mx-2 h-2 bg-secondary rounded-full" />
+            )}
+
+            <button
+              onClick={() => setActiveIndex(Math.min(data.length - 1, activeIndex + 1))}
+              disabled={activeIndex === data.length - 1}
+              className="p-1 rounded-md hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              aria-label="Next image"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+
+            <div className="text-xs text-muted-foreground shrink-0 tabular-nums w-12 text-center pl-2">
+              {activeIndex + 1} / {data.length}
             </div>
           </div>
         </div>
@@ -161,7 +214,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
             {errorMessage || "No imagery found"}
           </p>
           <p className="text-muted-foreground text-xs">
-            Adjust coordinates or date and try again
+            Adjust coordinates or date range and try again
           </p>
         </div>
       )}

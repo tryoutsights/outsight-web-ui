@@ -11,32 +11,32 @@ interface ImageryData {
   date: string;
 }
 
-const fetchImagery = async (lat: number, lon: number, date: string): Promise<ImageryData> => {
+const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string): Promise<ImageryData[]> => {
   const res = await fetch(
-    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&date=${date}`
+    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}`
   );
   if (!res.ok) {
     const body = await res.text();
     throw new Error(body || `Request failed (${res.status})`);
   }
   const json = await res.json();
-  if (!json.imagery) {
-    throw new Error("No imagery data found in response");
+  if (!Array.isArray(json)) {
+    throw new Error("Invalid response format: expected an array");
   }
-  return {
-    image_url: json.imagery.visual_asset_url,
-    satellite_name: json.imagery.platform || "Sentinel-2",
-    cloud_cover: json.imagery.cloud_cover_percentage,
-    date: json.imagery.capture_datetime
-  };
+  return json.map((item: any) => ({
+    image_url: item.image_url,
+    satellite_name: item.satellite || "Sentinel-2",
+    cloud_cover: item.cloud_cover,
+    date: item.capture_date
+  }));
 };
 
 const Index = () => {
-  const [params, setParams] = useState<{ lat: number; lon: number; date: string } | null>(null);
+  const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string } | null>(null);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["imagery", params],
-    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.date),
+    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate),
     enabled: !!params,
     retry: false,
   });
@@ -50,8 +50,8 @@ const Index = () => {
     }
   }, [isError, error]);
 
-  const handleRetrieve = (lat: number, lon: number, date: string) => {
-    setParams({ lat, lon, date });
+  const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string) => {
+    setParams({ lat, lon, startDate, endDate });
   };
 
   const canvasState = !params
@@ -60,9 +60,9 @@ const Index = () => {
       ? "loading"
       : isError
         ? "error"
-        : data
+        : data && data.length > 0
           ? "loaded"
-          : "empty";
+          : "error";
 
   return (
     <div className="flex flex-col h-screen p-3 md:p-4 gap-3 md:gap-4">

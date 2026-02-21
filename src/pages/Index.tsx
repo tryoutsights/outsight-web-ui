@@ -95,7 +95,7 @@ const Index = () => {
           : "error";
 
   return (
-    <div className="flex flex-col h-screen p-3 md:p-4 gap-3 md:gap-4">
+    <div className="flex flex-col min-h-screen p-3 md:p-4 gap-3 md:gap-4">
       <ControlPanel onRetrieve={handleRetrieve} isLoading={isLoading} />
       <VisualizationCanvas
         state={canvasState as any}

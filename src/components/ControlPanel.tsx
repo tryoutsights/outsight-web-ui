@@ -207,7 +207,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
         <Button
           onClick={handleSubmit}
           disabled={!isValid() || isLoading}
-          className="w-full bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
+          className="w-full sm:col-span-2 lg:col-span-1 mt-2 lg:mt-0 bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
         >
           {isLoading ? (
             <>

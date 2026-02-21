@@ -116,7 +116,7 @@ const RenderedImage: React.FC<{ url: string; alt: string; className?: string }> 
       <img
         src={url}
         alt={alt}
-        className={`max-w-full max-h-[65vh] object-contain transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
+        className={`w-full h-full object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
         onLoad={() => setLoading(false)}
         onError={() => setLoading(false)}
       />
@@ -139,7 +139,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   const currentImage = data && data.length > 0 ? data[activeIndex] : null;
 
   return (
-    <div className="relative flex-1 rounded-lg border border-border/30 overflow-hidden bg-background/50">
+    <div className="relative flex-1 flex flex-col rounded-lg border border-border/30 overflow-hidden bg-background/50">
       {/* Empty State */}
       {state === "empty" && (
         <div className="absolute inset-0 dot-grid flex items-center justify-center">
@@ -163,19 +163,19 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
 
       {/* Loaded State */}
       {state === "loaded" && currentImage && data && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 animate-[fade-in_0.6s_ease-out] overflow-y-auto">
-          <div className="relative w-full max-w-4xl max-h-[65vh] rounded-lg overflow-hidden glow-cyan-sm border border-primary/20 flex justify-center">
+        <div className="flex flex-1 w-full flex-col items-center justify-start p-4 md:p-6 animate-[fade-in_0.6s_ease-out]">
+          <div className="relative w-full max-w-[60vh] md:max-w-[70vh] mx-auto aspect-square shrink-0 rounded-lg overflow-hidden glow-cyan-sm border border-primary/20 bg-background/80">
             {currentImage.image_url.toLowerCase().endsWith(".tif") || currentImage.image_url.toLowerCase().endsWith(".tiff") ? (
               <TiffImage
                 url={currentImage.image_url}
                 alt={`Satellite imagery from ${currentImage.satellite_name}`}
-                className="w-full h-[65vh] aspect-square"
+                className="absolute inset-0 w-full h-full"
               />
             ) : (
               <RenderedImage
                 url={currentImage.image_url}
                 alt={`Satellite imagery from ${currentImage.satellite_name}`}
-                className="w-full h-[65vh]"
+                className="absolute inset-0 w-full h-full"
               />
             )}
             {/* Status badge */}

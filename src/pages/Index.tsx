@@ -19,7 +19,16 @@ const fetchImagery = async (lat: number, lon: number, date: string): Promise<Ima
     const body = await res.text();
     throw new Error(body || `Request failed (${res.status})`);
   }
-  return res.json();
+  const json = await res.json();
+  if (!json.imagery) {
+    throw new Error("No imagery data found in response");
+  }
+  return {
+    image_url: json.imagery.visual_asset_url,
+    satellite_name: json.imagery.platform || "Sentinel-2",
+    cloud_cover: json.imagery.cloud_cover_percentage,
+    date: json.imagery.capture_datetime
+  };
 };
 
 const Index = () => {

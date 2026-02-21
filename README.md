@@ -1,73 +1,49 @@
-# Welcome to your Lovable project
+# Outsight MVP - Earth Observation Interface 🛰️
 
-## Project info
+Outsight is a high-performance web interface designed to dynamically fetch, filter, and render historical satellite imagery across the globe. Built precisely on top of modern frontend primitives, it interfaces seamlessly with a custom FastAPI + STAC (SpatioTemporal Asset Catalog) raster backend to visualize `Sentinel-2/L2A` Open Data.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Key Features
 
-## How can I edit this code?
+* **Time-Series Playback**: Enter a broad date range (e.g., 2023-01-01 to 2024-01-01) and use the native Shadcn scrub-slider or navigation arrows to instantly traverse historical aerial frames of the same coordinate over time.
+* **Dynamic Sector Sizing**: Explores geographic bounds ranging from 1x1 km deep-dive crops out to massive 10x10 km regional views.
+* **Cloud Cover Filtering**: Instantly filters the timeline dataset by defining a maximum cloud cover percentage (0% - 100%), ensuring clear visibility.
+* **Intelligent Raster Rendering**: Features a state-aware `<RenderedImage />` component that gracefully streams heavy Cloud Optimized GeoTIFFs (COGs) via the `/api/render` backend, displaying a beautiful `Loader2` "Processing Satellite Data..." overlay while streaming to prevent UI freezes.
+* **Graceful Error Handling**: Automatically intercepts JSON-wrapped FastAPI exceptions directly into sleek `sonner` toaster notifications if no imagery is found or bounds are invalid.
 
-There are several ways of editing your application.
+## 🛠️ Stack Architecture
 
-**Use Lovable**
+* **Framework**: React 18 + Vite
+* **Styling**: Tailwind CSS + custom glassmorphism & minimal cyber-aesthetics.
+* **Component Library**: [shadcn/ui](https://ui.shadcn.com/) (specifically `Slider`, `Popover`, `Calendar`, `Select`, `Input`, `Label`, `Button`)
+* **State Management**: `@tanstack/react-query` for high-performance API caching.
+* **Date Parsing**: `date-fns`
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## ⚙️ Local Development Setup
 
-Changes made via Lovable will be committed automatically to this repo.
+The repository requires Node.js (v20+ recommended).
 
-**Use your preferred IDE**
+1. **Clone the repository**:
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd outsight-web-ui
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Install dependencies**:
+   ```sh
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Start the Frontend development server**:
+   ```sh
+   npm run dev
+   ```
+   *The UI will normally launch on `http://localhost:8080`. Note that it expects the Outsight FastAPI backend to be running concurrently on port `8000` for the `api/imagery` and `api/render` endpoints.*
 
-Follow these steps:
+## 📸 Interface Preview
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+The control panel features isolated Date Inputs with native calendar popovers, coordinate management, and the `Sector Size` and `Max Cloud` filters feeding into the primary Canvas.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+When retrieving imagery, the `<VisualizationCanvas />` orchestrates the fetching and metadata display natively.
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+*Built with precision.*

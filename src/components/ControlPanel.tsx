@@ -11,9 +11,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ControlPanelProps {
-  onRetrieve: (lat: number, lon: number, startDate: string, endDate: string) => void;
+  onRetrieve: (lat: number, lon: number, startDate: string, endDate: string, areaSize: number) => void;
   isLoading: boolean;
 }
 
@@ -95,6 +102,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
   const [lon, setLon] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [areaSize, setAreaSize] = useState("1"); // Default to 1x1 km
 
   const isValid = () => {
     const latNum = parseFloat(lat);
@@ -114,7 +122,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
 
   const handleSubmit = () => {
     if (!isValid()) return;
-    onRetrieve(parseFloat(lat), parseFloat(lon), format(startDate!, "yyyy-MM-dd"), format(endDate!, "yyyy-MM-dd"));
+    onRetrieve(parseFloat(lat), parseFloat(lon), format(startDate!, "yyyy-MM-dd"), format(endDate!, "yyyy-MM-dd"), parseInt(areaSize, 10));
   };
 
   return (
@@ -126,7 +134,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground uppercase tracking-wider">
             Latitude
@@ -162,6 +170,23 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
         <DateInput label="Start Date" date={startDate} onDateChange={setStartDate} />
         <DateInput label="End Date" date={endDate} onDateChange={setEndDate} />
 
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+            Sector Size
+          </Label>
+          <Select value={areaSize} onValueChange={setAreaSize}>
+            <SelectTrigger className="w-full bg-background/50 border-border/50 focus:ring-primary h-10">
+              <SelectValue placeholder="Select size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1x1 km</SelectItem>
+              <SelectItem value="4">2x2 km</SelectItem>
+              <SelectItem value="25">5x5 km</SelectItem>
+              <SelectItem value="100">10x10 km</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button
           onClick={handleSubmit}
           disabled={!isValid() || isLoading}
@@ -173,7 +198,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
               Retrieving…
             </>
           ) : (
-            "Retrieve EO Data"
+            "Retrieve"
           )}
         </Button>
       </div>

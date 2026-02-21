@@ -96,6 +96,34 @@ const TiffImage: React.FC<{ url: string; alt: string; className?: string }> = ({
   );
 };
 
+const RenderedImage: React.FC<{ url: string; alt: string; className?: string }> = ({ url, alt, className }) => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+  }, [url]);
+
+  return (
+    <div className={`relative flex items-center justify-center ${className}`}>
+      {loading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-10 rounded-lg gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-xs text-primary font-medium tracking-widest uppercase">
+            Processing Satellite Data...
+          </span>
+        </div>
+      )}
+      <img
+        src={url}
+        alt={alt}
+        className={`max-w-full max-h-[65vh] object-contain transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
+        onLoad={() => setLoading(false)}
+        onError={() => setLoading(false)}
+      />
+    </div>
+  );
+};
+
 const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   state,
   data,
@@ -144,10 +172,10 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
                 className="w-full h-[65vh] aspect-square"
               />
             ) : (
-              <img
-                src={currentImage.image_url}
+              <RenderedImage
+                url={currentImage.image_url}
                 alt={`Satellite imagery from ${currentImage.satellite_name}`}
-                className="max-w-full max-h-[65vh] object-contain"
+                className="w-full h-[65vh]"
               />
             )}
             {/* Status badge */}

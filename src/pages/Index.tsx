@@ -11,9 +11,9 @@ interface ImageryData {
   date: string;
 }
 
-const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string): Promise<ImageryData[]> => {
+const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number): Promise<ImageryData[]> => {
   const res = await fetch(
-    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}`
+    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}`
   );
   if (!res.ok) {
     const text = await res.text();
@@ -40,20 +40,27 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
   if (!Array.isArray(json)) {
     throw new Error("Invalid response format: expected an array");
   }
-  return json.map((item: any) => ({
-    image_url: item.image_url,
-    satellite_name: item.satellite || "Sentinel-2",
-    cloud_cover: item.cloud_cover,
-    date: item.capture_date
-  }));
+  return json.map((item: any) => {
+    // Ensure the image URL points to the backend if it is relative
+    const url = item.image_url.startsWith("/")
+      ? `http://localhost:8000${item.image_url}`
+      : item.image_url;
+
+    return {
+      image_url: url,
+      satellite_name: item.satellite || "Sentinel-2",
+      cloud_cover: item.cloud_cover,
+      date: item.capture_date
+    };
+  });
 };
 
 const Index = () => {
-  const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string } | null>(null);
+  const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string; areaSize: number } | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["imagery", params],
-    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate),
+    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate, params!.areaSize),
     enabled: !!params,
     retry: false,
   });
@@ -67,10 +74,10 @@ const Index = () => {
     }
   }, [isError, error]);
 
-  const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string) => {
-    setParams({ lat, lon, startDate, endDate });
+  const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string, areaSize: number) => {
+    setParams({ lat, lon, startDate, endDate, areaSize });
     // Force a refetch if the params are exactly the same and useQuery ignores the state update
-    if (params && params.lat === lat && params.lon === lon && params.startDate === startDate && params.endDate === endDate) {
+    if (params && params.lat === lat && params.lon === lon && params.startDate === startDate && params.endDate === endDate && params.areaSize === areaSize) {
       refetch();
     }
   };

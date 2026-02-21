@@ -18,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 interface ControlPanelProps {
-  onRetrieve: (lat: number, lon: number, startDate: string, endDate: string, areaSize: number) => void;
+  onRetrieve: (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number) => void;
   isLoading: boolean;
 }
 
@@ -103,6 +104,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [areaSize, setAreaSize] = useState("1"); // Default to 1x1 km
+  const [maxCloudCover, setMaxCloudCover] = useState([100]);
 
   const isValid = () => {
     const latNum = parseFloat(lat);
@@ -122,7 +124,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
 
   const handleSubmit = () => {
     if (!isValid()) return;
-    onRetrieve(parseFloat(lat), parseFloat(lon), format(startDate!, "yyyy-MM-dd"), format(endDate!, "yyyy-MM-dd"), parseInt(areaSize, 10));
+    onRetrieve(parseFloat(lat), parseFloat(lon), format(startDate!, "yyyy-MM-dd"), format(endDate!, "yyyy-MM-dd"), parseInt(areaSize, 10), maxCloudCover[0]);
   };
 
   return (
@@ -134,7 +136,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground uppercase tracking-wider">
             Latitude
@@ -185,6 +187,21 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
               <SelectItem value="100">10x10 km</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-3 pb-2 w-full pr-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+              Max Cloud: {maxCloudCover[0]}%
+            </Label>
+          </div>
+          <Slider
+            value={maxCloudCover}
+            onValueChange={setMaxCloudCover}
+            max={100}
+            step={5}
+            className="w-full"
+          />
         </div>
 
         <Button

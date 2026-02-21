@@ -11,9 +11,9 @@ interface ImageryData {
   date: string;
 }
 
-const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number): Promise<ImageryData[]> => {
+const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number): Promise<ImageryData[]> => {
   const res = await fetch(
-    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}`
+    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
   );
   if (!res.ok) {
     const text = await res.text();
@@ -56,11 +56,11 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
 };
 
 const Index = () => {
-  const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string; areaSize: number } | null>(null);
+  const [params, setParams] = useState<{ lat: number; lon: number; startDate: string; endDate: string; areaSize: number; maxCloudCover: number } | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["imagery", params],
-    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate, params!.areaSize),
+    queryFn: () => fetchImagery(params!.lat, params!.lon, params!.startDate, params!.endDate, params!.areaSize, params!.maxCloudCover),
     enabled: !!params,
     retry: false,
   });
@@ -74,10 +74,10 @@ const Index = () => {
     }
   }, [isError, error]);
 
-  const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string, areaSize: number) => {
-    setParams({ lat, lon, startDate, endDate, areaSize });
+  const handleRetrieve = (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number) => {
+    setParams({ lat, lon, startDate, endDate, areaSize, maxCloudCover });
     // Force a refetch if the params are exactly the same and useQuery ignores the state update
-    if (params && params.lat === lat && params.lon === lon && params.startDate === startDate && params.endDate === endDate && params.areaSize === areaSize) {
+    if (params && params.lat === lat && params.lon === lon && params.startDate === startDate && params.endDate === endDate && params.areaSize === areaSize && params.maxCloudCover === maxCloudCover) {
       refetch();
     }
   };

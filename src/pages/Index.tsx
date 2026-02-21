@@ -11,9 +11,11 @@ interface ImageryData {
   date: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number): Promise<ImageryData[]> => {
   const res = await fetch(
-    `http://localhost:8000/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
+    `${API_BASE_URL}/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
   );
   if (!res.ok) {
     const text = await res.text();
@@ -43,7 +45,7 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
   return json.map((item: any) => {
     // Ensure the image URL points to the backend if it is relative
     const url = item.image_url.startsWith("/")
-      ? `http://localhost:8000${item.image_url}`
+      ? `${API_BASE_URL}${item.image_url}`
       : item.image_url;
 
     return {

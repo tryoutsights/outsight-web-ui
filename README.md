@@ -33,7 +33,13 @@ The repository requires Node.js (v20+ recommended).
    npm install
    ```
 
-3. **Start the Frontend development server**:
+3. **Configure Environment Variables**:
+   Copy the example environment file to configure your local backend endpoint.
+   ```sh
+   cp .env.example .env
+   ```
+
+4. **Start the Frontend development server**:
    ```sh
    npm run dev
    ```

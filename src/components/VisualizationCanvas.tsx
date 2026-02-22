@@ -3,6 +3,9 @@ import { Cloud, Loader2 } from "lucide-react";
 import { fromUrl } from "geotiff";
 import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface ImageryData {
   image_url: string;
@@ -105,6 +108,9 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeImageUrl, setActiveImageUrl] = useState<string>("");
   const [isRendering, setIsRendering] = useState<boolean>(false);
+  const [analysisPrompt, setAnalysisPrompt] = useState<string>("");
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [analysisResult, setAnalysisResult] = useState<{ analysis: string; key_features: string[] } | null>(null);
   const imageCache = useRef<Map<string, string>>(new Map<string, string>());
 
   useEffect(() => {
@@ -182,10 +188,57 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
     return () => { isMounted = false; };
   }, [activeIndex, data]);
 
-  // Reset slider when new data arrives
+  // Reset slider and clear analysis when new data arrives or index changes
   useEffect(() => {
     setActiveIndex(0);
+    setAnalysisResult(null);
   }, [data]);
+
+  useEffect(() => {
+    setAnalysisResult(null);
+  }, [activeIndex]);
+
+  const handleAnalyze = async () => {
+    if (!data || data.length === 0 || !data[activeIndex]) return;
+    if (!analysisPrompt.trim()) {
+      toast.error("Please enter a prompt for the analysis.");
+      return;
+    }
+
+    const currentItem = data[activeIndex];
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+    
+    try {
+      const payload = {
+        prompt: analysisPrompt,
+        cog_urls: currentItem.render_payload?.cog_urls || [],
+        bbox: currentItem.render_payload?.bbox || []
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Analysis failed.");
+      }
+
+      const result = await res.json();
+      setAnalysisResult(result);
+      toast.success("Analysis complete.");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Analysis Failed", { description: err.message });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const currentImage = data && data.length > 0 ? data[activeIndex] : null;
 
@@ -294,6 +347,46 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
             <div className="text-xs text-muted-foreground shrink-0 tabular-nums w-12 text-center pl-2">
               {activeIndex + 1} / {data.length}
             </div>
+          </div>
+
+          {/* AI Analysis Section */}
+          <div className="w-full max-w-lg mt-4 flex flex-col gap-3 bg-background/50 p-4 rounded-lg border border-border/50 backdrop-blur-sm shadow-sm">
+            <h3 className="text-sm font-semibold text-primary">Analyze Image</h3>
+            <div className="flex w-full items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="What geographical features are visible here?"
+                value={analysisPrompt}
+                onChange={(e) => setAnalysisPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAnalyze();
+                  }
+                }}
+                disabled={isAnalyzing || isRendering}
+                className="bg-background/80"
+              />
+              <Button onClick={handleAnalyze} disabled={isAnalyzing || isRendering || !analysisPrompt.trim()}>
+                {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Analyze
+              </Button>
+            </div>
+            
+            {analysisResult && (
+              <div className="mt-2 p-3 bg-muted/30 rounded border border-border/30 text-sm animate-in fade-in zoom-in duration-300">
+                <p className="text-foreground leading-relaxed mb-3">{analysisResult.analysis}</p>
+                {analysisResult.key_features && analysisResult.key_features.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {analysisResult.key_features.map((feature, idx) => (
+                      <span key={idx} className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 rounded-md">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

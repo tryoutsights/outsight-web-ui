@@ -5,9 +5,11 @@ Outsight is a high-performance web interface designed to dynamically fetch, filt
 ## 🚀 Key Features
 
 * **Time-Series Playback**: Enter a broad date range (e.g., 2023-01-01 to 2024-01-01) and use the native Shadcn scrub-slider or navigation arrows to instantly traverse historical aerial frames of the same coordinate over time.
+* **Interactive Map Coordinate Selection**: Click on a live map (powered by Mapbox) to instantly set your target coordinates, eliminating the need for manual latitude/longitude entry.
 * **Dynamic Sector Sizing**: Explores geographic bounds ranging from 1x1 km deep-dive crops out to massive 10x10 km regional views.
 * **Cloud Cover Filtering**: Instantly filters the timeline dataset by defining a maximum cloud cover percentage (0% - 100%), ensuring clear visibility.
 * **Intelligent Raster Rendering**: Features a state-aware `<VisualizationCanvas />` orchestrating blob retrievals via the `/api/render` POST endpoint. Employs a local memory cache referencing generated `Object URLs` for instantaneous replay when traversing back to earlier timeline dates.
+* **AI Image Analysis**: Use the built-in "Analyze Image" tool to prompt an AI model for insights about the currently rendered satellite image via the `/api/analyze` endpoint.
 * **Graceful Error Handling**: Automatically intercepts JSON-wrapped FastAPI exceptions directly into sleek `sonner` toaster notifications if no imagery is found or bounds are invalid.
 
 ## 🛠️ Stack Architecture
@@ -34,10 +36,11 @@ The repository requires Node.js (v20+ recommended).
    ```
 
 3. **Configure Environment Variables**:
-   Copy the example environment file to configure your local backend endpoint.
+   Copy the example environment file to configure your local backend endpoint and Mapbox token.
    ```sh
    cp .env.example .env
    ```
+   *Make sure to add your `VITE_MAPBOX_TOKEN` alongside `VITE_API_BASE_URL` in the `.env` file to enable the interactive map feature.*
 
 4. **Start the Frontend development server**:
    ```sh

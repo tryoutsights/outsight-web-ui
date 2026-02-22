@@ -128,9 +128,11 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
       return;
     }
 
-    if (imageCache.current.has(currentItem.capture_date)) {
+    const cacheKey = currentItem.render_payload ? JSON.stringify(currentItem.render_payload) : currentItem.capture_date;
+
+    if (imageCache.current.has(cacheKey)) {
       console.log(`[VisualizationCanvas] Cache Hit: Loading Object URL for ${currentItem.capture_date}`);
-      setActiveImageUrl(imageCache.current.get(currentItem.capture_date)!);
+      setActiveImageUrl(imageCache.current.get(cacheKey)!);
       setIsRendering(false);
       return;
     }
@@ -160,7 +162,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
         console.log(`[VisualizationCanvas] Object URL generated for cache: ${localUrl}`);
 
         if (isMounted) {
-          imageCache.current.set(currentItem.capture_date, localUrl);
+          imageCache.current.set(cacheKey, localUrl);
           setActiveImageUrl(localUrl);
         }
       } catch (err) {

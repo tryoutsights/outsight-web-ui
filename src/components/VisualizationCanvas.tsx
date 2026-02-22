@@ -210,7 +210,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
     setAnalysisResult(null);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-    
+
     try {
       const payload = {
         prompt: analysisPrompt,
@@ -226,7 +226,19 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.detail || "Analysis failed.");
+        let errMsg = errData.detail || "Analysis failed.";
+
+        if (typeof errMsg === 'string') {
+          if (errMsg.toLowerCase().includes("api key")) {
+            errMsg = "Invalid or missing API key. Please check your backend configuration.";
+          } else if (errMsg.length > 150) {
+            errMsg = "An internal error occurred during analysis. Please check server logs.";
+          }
+        } else {
+          errMsg = "An unexpected error occurred.";
+        }
+
+        throw new Error(errMsg);
       }
 
       const result = await res.json();
@@ -372,7 +384,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
                 Analyze
               </Button>
             </div>
-            
+
             {analysisResult && (
               <div className="mt-2 p-3 bg-muted/30 rounded border border-border/30 text-sm animate-in fade-in zoom-in duration-300">
                 <p className="text-foreground leading-relaxed mb-3">{analysisResult.analysis}</p>

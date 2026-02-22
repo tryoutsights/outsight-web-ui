@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { format, parse } from "date-fns";
-import { CalendarIcon, Loader2, Satellite } from "lucide-react";
+import { CalendarIcon, Loader2, Satellite, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { MapPicker } from "./MapPicker";
 
 interface ControlPanelProps {
   onRetrieve: (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number) => void;
@@ -105,6 +106,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
   const [endDate, setEndDate] = useState<Date>();
   const [areaSize, setAreaSize] = useState("1"); // Default to 1x1 km
   const [maxCloudCover, setMaxCloudCover] = useState([100]);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const isValid = () => {
     const latNum = parseFloat(lat);
@@ -137,10 +139,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 items-end">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-            Latitude
-          </Label>
+        <div className="space-y-1.5 relative">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+              Latitude
+            </Label>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5 py-0 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent"
+              onClick={() => setIsMapOpen(true)}
+              title="Select on map"
+            >
+              <MapPin className="h-3.5 w-3.5 mr-1" />
+              <span className="text-[10px] uppercase font-semibold tracking-wider">Map</span>
+            </Button>
+          </div>
           <Input
             type="number"
             placeholder="40.7128"
@@ -219,6 +233,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
           )}
         </Button>
       </div>
+
+      <MapPicker
+        isOpen={isMapOpen}
+        onOpenChange={setIsMapOpen}
+        initialLat={parseFloat(lat)}
+        initialLon={parseFloat(lon)}
+        onSelect={(newLat, newLon) => {
+          setLat(newLat.toString());
+          setLon(newLon.toString());
+        }}
+      />
     </div>
   );
 };

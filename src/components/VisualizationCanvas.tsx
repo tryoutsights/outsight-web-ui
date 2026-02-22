@@ -135,7 +135,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
     let isMounted = true;
     setIsRendering(true);
 
-    const fetchImage = async () => {
+    const fetchMosaic = async () => {
       try {
         const response = await fetch('http://localhost:8000/api/render', {
           method: 'POST',
@@ -151,18 +151,20 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
         if (isMounted) {
           imageCache.current.set(currentItem.capture_date, localUrl);
           setActiveImageUrl(localUrl);
-          setIsRendering(false);
         }
       } catch (err) {
         console.error("Failed to render image via POST", err);
         if (isMounted) {
           setActiveImageUrl(currentItem.image_url);
+        }
+      } finally {
+        if (isMounted) {
           setIsRendering(false);
         }
       }
     };
 
-    fetchImage();
+    fetchMosaic();
 
     return () => { isMounted = false; };
   }, [activeIndex, data]);

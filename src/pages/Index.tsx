@@ -8,7 +8,8 @@ interface ImageryData {
   image_url: string;
   satellite_name: string;
   cloud_cover: number;
-  date: string;
+  capture_date: string;
+  render_payload?: any;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -43,16 +44,16 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
     throw new Error("Invalid response format: expected an array");
   }
   return json.map((item: any) => {
-    // Ensure the image URL points to the backend if it is relative
-    const url = item.image_url.startsWith("/")
+    const url = item.image_url && item.image_url.startsWith("/")
       ? `${API_BASE_URL}${item.image_url}`
-      : item.image_url;
+      : item.image_url || "";
 
     return {
       image_url: url,
       satellite_name: item.satellite || "Sentinel-2",
       cloud_cover: item.cloud_cover,
-      date: item.capture_date
+      capture_date: item.capture_date,
+      render_payload: item.render_payload
     };
   });
 };

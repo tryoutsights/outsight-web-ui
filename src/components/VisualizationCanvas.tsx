@@ -8,7 +8,8 @@ interface ImageryData {
   image_url: string;
   satellite_name: string;
   cloud_cover: number;
-  date: string;
+  capture_date: string;
+  render_payload?: any;
 }
 
 type CanvasState = "empty" | "loading" | "loaded" | "error";
@@ -96,40 +97,75 @@ const TiffImage: React.FC<{ url: string; alt: string; className?: string }> = ({
   );
 };
 
-const RenderedImage: React.FC<{ url: string; alt: string; className?: string }> = ({ url, alt, className }) => {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-  }, [url]);
-
-  return (
-    <div className={`relative flex items-center justify-center ${className}`}>
-      {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-10 rounded-lg gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-xs text-primary font-medium tracking-widest uppercase">
-            Processing Satellite Data...
-          </span>
-        </div>
-      )}
-      <img
-        src={url}
-        alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
-        onLoad={() => setLoading(false)}
-        onError={() => setLoading(false)}
-      />
-    </div>
-  );
-};
-
 const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   state,
   data,
   errorMessage,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeImageUrl, setActiveImageUrl] = useState<string>("");
+  const [isRendering, setIsRendering] = useState<boolean>(false);
+  const imageCache = useRef<Map<string, string>>(new Map<string, string>());
+
+  useEffect(() => {
+    return () => {
+      for (const url of imageCache.current.values()) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!data || data.length === 0 || !data[activeIndex]) return;
+
+    const currentItem = data[activeIndex];
+
+    if (currentItem.image_url.toLowerCase().endsWith(".tif") || currentItem.image_url.toLowerCase().endsWith(".tiff") || !currentItem.render_payload) {
+      setActiveImageUrl(currentItem.image_url);
+      setIsRendering(false);
+      return;
+    }
+
+    if (imageCache.current.has(currentItem.capture_date)) {
+      setActiveImageUrl(imageCache.current.get(currentItem.capture_date)!);
+      setIsRendering(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsRendering(true);
+
+    const fetchImage = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentItem.render_payload)
+        });
+
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const blob = await response.blob();
+        const localUrl = URL.createObjectURL(blob);
+
+        if (isMounted) {
+          imageCache.current.set(currentItem.capture_date, localUrl);
+          setActiveImageUrl(localUrl);
+          setIsRendering(false);
+        }
+      } catch (err) {
+        console.error("Failed to render image via POST", err);
+        if (isMounted) {
+          setActiveImageUrl(currentItem.image_url);
+          setIsRendering(false);
+        }
+      }
+    };
+
+    fetchImage();
+
+    return () => { isMounted = false; };
+  }, [activeIndex, data]);
 
   // Reset slider when new data arrives
   useEffect(() => {
@@ -167,16 +203,28 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
           <div className="relative w-full max-w-[60vh] md:max-w-[70vh] mx-auto aspect-square shrink-0 rounded-lg overflow-hidden glow-cyan-sm border border-primary/20 bg-background/80">
             {currentImage.image_url.toLowerCase().endsWith(".tif") || currentImage.image_url.toLowerCase().endsWith(".tiff") ? (
               <TiffImage
-                url={currentImage.image_url}
+                url={activeImageUrl || currentImage.image_url}
                 alt={`Satellite imagery from ${currentImage.satellite_name}`}
                 className="absolute inset-0 w-full h-full"
               />
             ) : (
-              <RenderedImage
-                url={currentImage.image_url}
-                alt={`Satellite imagery from ${currentImage.satellite_name}`}
-                className="absolute inset-0 w-full h-full"
-              />
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+                {isRendering && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-30 rounded-lg gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <span className="text-xs text-primary font-medium tracking-widest uppercase animate-pulse">
+                      Rendering Image...
+                    </span>
+                  </div>
+                )}
+                {activeImageUrl && (
+                  <img
+                    src={activeImageUrl}
+                    alt={`Satellite imagery from ${currentImage.satellite_name}`}
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${isRendering ? 'opacity-0' : 'opacity-100'}`}
+                  />
+                )}
+              </div>
             )}
             {/* Status badge */}
             <div className="absolute top-3 right-3 glass rounded-full px-3 py-1.5 flex items-center gap-2 text-xs font-medium z-20 shadow-md">
@@ -194,7 +242,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
           {/* Timeline Slider */}
           <div className="w-full max-w-lg mt-6 flex items-center gap-2 bg-background/50 p-2 md:p-3 rounded-lg border border-border/50 backdrop-blur-sm shadow-sm">
             <div className="text-sm font-medium text-foreground w-28 shrink-0 text-right pr-2">
-              {format(new Date(currentImage.date), "MMM d, yyyy")}
+              {format(new Date(currentImage.capture_date), "MMM d, yyyy")}
             </div>
 
             <button

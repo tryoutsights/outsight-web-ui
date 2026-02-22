@@ -7,7 +7,7 @@ Outsight is a high-performance web interface designed to dynamically fetch, filt
 * **Time-Series Playback**: Enter a broad date range (e.g., 2023-01-01 to 2024-01-01) and use the native Shadcn scrub-slider or navigation arrows to instantly traverse historical aerial frames of the same coordinate over time.
 * **Dynamic Sector Sizing**: Explores geographic bounds ranging from 1x1 km deep-dive crops out to massive 10x10 km regional views.
 * **Cloud Cover Filtering**: Instantly filters the timeline dataset by defining a maximum cloud cover percentage (0% - 100%), ensuring clear visibility.
-* **Intelligent Raster Rendering**: Features a state-aware `<RenderedImage />` component that gracefully streams heavy Cloud Optimized GeoTIFFs (COGs) via the `/api/render` backend, displaying a beautiful `Loader2` "Processing Satellite Data..." overlay while streaming to prevent UI freezes.
+* **Intelligent Raster Rendering**: Features a state-aware `<VisualizationCanvas />` orchestrating blob retrievals via the `/api/render` POST endpoint. Employs a local memory cache referencing generated `Object URLs` for instantaneous replay when traversing back to earlier timeline dates.
 * **Graceful Error Handling**: Automatically intercepts JSON-wrapped FastAPI exceptions directly into sleek `sonner` toaster notifications if no imagery is found or bounds are invalid.
 
 ## 🛠️ Stack Architecture

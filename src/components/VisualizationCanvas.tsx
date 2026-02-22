@@ -119,23 +119,29 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
     if (!data || data.length === 0 || !data[activeIndex]) return;
 
     const currentItem = data[activeIndex];
+    console.log(`[VisualizationCanvas] Activating index ${activeIndex} for date ${currentItem.capture_date}`);
 
     if (currentItem.image_url.toLowerCase().endsWith(".tif") || currentItem.image_url.toLowerCase().endsWith(".tiff") || !currentItem.render_payload) {
+      console.log(`[VisualizationCanvas] Skipping rendering for static/TIF resource: ${currentItem.image_url}`);
       setActiveImageUrl(currentItem.image_url);
       setIsRendering(false);
       return;
     }
 
     if (imageCache.current.has(currentItem.capture_date)) {
+      console.log(`[VisualizationCanvas] Cache Hit: Loading Object URL for ${currentItem.capture_date}`);
       setActiveImageUrl(imageCache.current.get(currentItem.capture_date)!);
       setIsRendering(false);
       return;
     }
 
+    console.log(`[VisualizationCanvas] Cache Miss: Initiating render for ${currentItem.capture_date}`);
+
     let isMounted = true;
     setIsRendering(true);
 
     const fetchMosaic = async () => {
+      console.log(`[VisualizationCanvas] POST /api/render payload:`, currentItem.render_payload);
       try {
         const response = await fetch('http://localhost:8000/api/render', {
           method: 'POST',
@@ -143,10 +149,14 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
           body: JSON.stringify(currentItem.render_payload)
         });
 
+        console.log(`[VisualizationCanvas] POST /api/render response status: ${response.status}`);
+
         if (!response.ok) throw new Error("Network response was not ok");
 
         const blob = await response.blob();
+        console.log(`[VisualizationCanvas] Render response Blob generated: ${blob.size} bytes`);
         const localUrl = URL.createObjectURL(blob);
+        console.log(`[VisualizationCanvas] Object URL generated for cache: ${localUrl}`);
 
         if (isMounted) {
           imageCache.current.set(currentItem.capture_date, localUrl);

@@ -15,6 +15,7 @@ interface ImageryData {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number): Promise<ImageryData[]> => {
+  console.log(`[Index API] Requesting /api/imagery config:`, { lat, lon, startDate, endDate, areaSize, maxCloudCover });
   const res = await fetch(
     `${API_BASE_URL}/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
   );
@@ -40,6 +41,7 @@ const fetchImagery = async (lat: number, lon: number, startDate: string, endDate
     throw new Error(errorMessage);
   }
   const json = await res.json();
+  console.log(`[Index API] Received raw JSON response array size: ${json.length}`);
   if (!Array.isArray(json)) {
     throw new Error("Invalid response format: expected an array");
   }

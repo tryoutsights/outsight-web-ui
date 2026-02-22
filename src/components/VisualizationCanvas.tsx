@@ -212,9 +212,75 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
     try {
+      const sortedData = [...data].sort((a, b) => new Date(a.capture_date).getTime() - new Date(b.capture_date).getTime());
+      const minDate = sortedData[0];
+      const maxDate = sortedData[sortedData.length - 1];
+      const minTime = new Date(minDate.capture_date).getTime();
+      const maxTime = new Date(maxDate.capture_date).getTime();
+      const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+      const span = maxTime - minTime;
+
+      let bestSelection: typeof sortedData = [];
+
+      if (sortedData.length <= 2) {
+        bestSelection = sortedData;
+      } else {
+        let maxK = 0;
+        for (let k = Math.min(10, sortedData.length); k >= 3; k--) {
+          const interval = span / (k - 1);
+          let currentSelection = [minDate];
+          let valid = true;
+
+          for (let i = 1; i < k - 1; i++) {
+            const idealTime = minTime + i * interval;
+            let closestIdx = -1;
+            let minDiff = Infinity;
+            const lastTime = new Date(currentSelection[currentSelection.length - 1].capture_date).getTime();
+
+            for (let j = 1; j < sortedData.length - 1; j++) {
+              const time = new Date(sortedData[j].capture_date).getTime();
+              const remainingPoints = k - 1 - i;
+              if (time - lastTime >= TEN_DAYS && maxTime - time >= remainingPoints * TEN_DAYS) {
+                const diff = Math.abs(time - idealTime);
+                if (diff < minDiff) {
+                  minDiff = diff;
+                  closestIdx = j;
+                }
+              }
+            }
+
+            if (closestIdx !== -1) {
+              currentSelection.push(sortedData[closestIdx]);
+            } else {
+              valid = false;
+              break;
+            }
+          }
+
+          if (valid) {
+            const lastSelectedTime = new Date(currentSelection[currentSelection.length - 1].capture_date).getTime();
+            if (maxTime - lastSelectedTime >= TEN_DAYS) {
+              currentSelection.push(maxDate);
+              bestSelection = currentSelection;
+              maxK = k;
+              break;
+            }
+          }
+        }
+
+        if (maxK === 0) {
+          bestSelection = [minDate, maxDate];
+        }
+      }
+
+      const image_sets = bestSelection.map(item => ({
+        date: item.capture_date.split('T')[0],
+        cog_urls: item.render_payload?.cog_urls || []
+      }));
+
       const payload = {
         prompt: analysisPrompt,
-        cog_urls: currentItem.render_payload?.cog_urls || [],
+        image_sets: image_sets,
         bbox: currentItem.render_payload?.bbox || []
       };
 

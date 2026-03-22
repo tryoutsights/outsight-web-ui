@@ -4,7 +4,6 @@ import { Building2, BarChart3, MapPin, Satellite, Eye, Users, Linkedin } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import LandingNavbar from "@/components/LandingNavbar";
 
 const solutions = [
   {
@@ -35,6 +34,7 @@ const founders = [
     quote: "Scaling high-throughput distributed systems to solve real-world infrastructure challenges.",
     experience: "Ex-Amazon Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/rajneesh04/",
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop",
   },
   {
     name: "Bhasker Goel",
@@ -43,6 +43,7 @@ const founders = [
     quote: "Building autonomous AI agents to drive intelligent, scalable Earth observation.",
     experience: "Ex-Google & Ex-D.E. Shaw Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/bhasker-goel/",
+    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop",
   },
 ];
 
@@ -61,7 +62,6 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <LandingNavbar />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -198,30 +198,36 @@ const Landing = () => {
             {founders.map((f) => (
               <div
                 key={f.name}
-                className="glass rounded-xl p-6 border border-border/30 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                className="group relative rounded-xl border border-border/30 bg-card overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xl">
+                <div className="h-48 overflow-hidden">
+                  <img
+                    src={f.image}
+                    alt={f.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="relative p-6 pt-8">
+                  <div className="absolute -top-5 left-6 w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-sm text-primary font-bold text-sm">
                     {f.initials}
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">{f.name}</h3>
-                    <p className="text-sm text-primary font-medium">{f.role}</p>
-                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{f.name}</h3>
+                  <p className="text-sm text-primary font-medium mb-3">{f.role}</p>
+                  <p className="text-sm text-muted-foreground italic mb-3 leading-relaxed">
+                    "{f.quote}"
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">{f.experience}</p>
+                  <a
+                    href={f.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Linkedin className="h-3.5 w-3.5" />
+                    Connect on LinkedIn
+                  </a>
                 </div>
-                <p className="text-sm text-muted-foreground italic mb-3 leading-relaxed">
-                  "{f.quote}"
-                </p>
-                <p className="text-xs text-muted-foreground mb-4">{f.experience}</p>
-                <a
-                  href={f.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
-                >
-                  <Linkedin className="h-3.5 w-3.5" />
-                  Connect on LinkedIn
-                </a>
               </div>
             ))}
           </div>

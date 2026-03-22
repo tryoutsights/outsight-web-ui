@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { Satellite, ArrowLeft } from "lucide-react";
 import ControlPanel from "@/components/ControlPanel";
 import VisualizationCanvas from "@/components/VisualizationCanvas";
 
@@ -95,26 +93,6 @@ const Platform = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <nav className="sticky top-0 z-50 glass border-b border-border/30">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 group">
-              <Satellite className="h-5 w-5 text-primary transition-transform group-hover:rotate-12" />
-              <span className="text-base font-bold tracking-widest uppercase text-foreground">
-                OutSights
-              </span>
-            </Link>
-            <span className="text-xs text-muted-foreground border-l border-border/40 pl-4">Platform Demo</span>
-          </div>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Link>
-        </div>
-      </nav>
       <div className="flex-1 p-3 md:p-4 flex flex-col gap-3 md:gap-4">
         <ControlPanel onRetrieve={handleRetrieve} isLoading={isLoading} />
         <VisualizationCanvas

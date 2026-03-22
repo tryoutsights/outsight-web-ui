@@ -4,7 +4,6 @@ import { Building2, BarChart3, MapPin, Satellite, Eye, Users, Linkedin } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import LandingNavbar from "@/components/LandingNavbar";
 
 const solutions = [
   {

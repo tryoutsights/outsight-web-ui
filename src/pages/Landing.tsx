@@ -35,6 +35,7 @@ const founders = [
     quote: "Scaling high-throughput distributed systems to solve real-world infrastructure challenges.",
     experience: "Ex-Amazon Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/rajneesh04/",
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop",
   },
   {
     name: "Bhasker Goel",
@@ -43,6 +44,7 @@ const founders = [
     quote: "Building autonomous AI agents to drive intelligent, scalable Earth observation.",
     experience: "Ex-Google & Ex-D.E. Shaw Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/bhasker-goel/",
+    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop",
   },
 ];
 

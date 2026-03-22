@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Building2, BarChart3, MapPin, Satellite, Eye, Users, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -143,6 +143,10 @@ const Landing = () => {
       <section id="solutions" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-6">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Solutions
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Built for Real Estate & Construction
             </h2>

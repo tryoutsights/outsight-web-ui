@@ -124,7 +124,7 @@ const Landing = () => {
       </section>
 
       {/* Vision */}
-      <section className="py-20 md:py-28 bg-card/50 border-y border-border/20">
+      <section id="vision" className="py-20 md:py-28 bg-card/50 border-y border-border/20">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-8">
             <Eye className="h-3.5 w-3.5" />

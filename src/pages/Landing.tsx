@@ -189,9 +189,6 @@ const Landing = () => {
               <Users className="h-3.5 w-3.5" />
               About Us
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-              The Team Behind OutSights
-            </h2>
             <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               OutSights was founded to solve the critical "Trust Gap" and multi-million dollar "leakage" in the construction and infrastructure sectors, where developers frequently lose capital to falsified progress reports. Built on an 8-year collaborative engineering history in robotics and deep-tech, we provide an unfalsifiable, remote truth layer for physical assets.
             </p>

@@ -10,7 +10,8 @@ const LandingNavbar = () => {
     if (isLanding) {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     } else {
-      window.location.href = `/#${id}`;
+      // Use React Router-friendly navigation
+      window.location.assign(`/#${id}`);
     }
   };
 

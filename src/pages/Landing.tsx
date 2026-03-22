@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Building2, BarChart3, MapPin, Satellite, Eye, Users, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ const founders = [
     quote: "Scaling high-throughput distributed systems to solve real-world infrastructure challenges.",
     experience: "Ex-Amazon Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/rajneesh04/",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop",
   },
   {
     name: "Bhasker Goel",
@@ -43,12 +43,21 @@ const founders = [
     quote: "Building autonomous AI agents to drive intelligent, scalable Earth observation.",
     experience: "Ex-Google & Ex-D.E. Shaw Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/bhasker-goel/",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=500&fit=crop",
   },
 ];
 
 const Landing = () => {
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +209,7 @@ const Landing = () => {
                 key={f.name}
                 className="group relative rounded-xl border border-border/30 bg-card overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
               >
-                <div className="h-48 overflow-hidden">
+                <div className="h-72 overflow-hidden">
                   <img
                     src={f.image}
                     alt={f.name}

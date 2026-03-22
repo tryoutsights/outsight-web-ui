@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Satellite, ArrowLeft } from "lucide-react";
 import ControlPanel from "@/components/ControlPanel";
 import VisualizationCanvas from "@/components/VisualizationCanvas";
 

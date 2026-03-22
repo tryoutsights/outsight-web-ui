@@ -124,13 +124,13 @@ const Landing = () => {
       </section>
 
       {/* Vision */}
-      <section className="py-20 md:py-28 bg-card/50 border-y border-border/20">
+      <section id="vision" className="py-20 md:py-28 bg-card/50 border-y border-border/20">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-8">
             <Eye className="h-3.5 w-3.5" />
             Our Vision
           </div>
-          <blockquote className="text-2xl md:text-3xl font-bold leading-snug tracking-tight text-foreground italic">
+          <blockquote className="text-xl md:text-2xl font-bold leading-snug tracking-tight text-foreground italic">
             "Our vision is to build the definitive remote truth layer for Earth observation, starting with India's infrastructure boom."
           </blockquote>
           <p className="mt-8 text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -143,6 +143,10 @@ const Landing = () => {
       <section id="solutions" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-6">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Solutions
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Built for Real Estate & Construction
             </h2>
@@ -185,9 +189,6 @@ const Landing = () => {
               <Users className="h-3.5 w-3.5" />
               About Us
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-              The Team Behind OutSights
-            </h2>
             <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               OutSights was founded to solve the critical "Trust Gap" and multi-million dollar "leakage" in the construction and infrastructure sectors, where developers frequently lose capital to falsified progress reports. Built on an 8-year collaborative engineering history in robotics and deep-tech, we provide an unfalsifiable, remote truth layer for physical assets.
             </p>
@@ -200,7 +201,7 @@ const Landing = () => {
                 className="glass rounded-xl p-6 border border-border/30 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base">
                     {f.initials}
                   </div>
                   <div>

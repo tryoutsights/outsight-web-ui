@@ -43,7 +43,7 @@ const founders = [
     quote: "Building autonomous AI agents to drive intelligent, scalable Earth observation.",
     experience: "Ex-Google & Ex-D.E. Shaw Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/bhasker-goel/",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=500&fit=crop",
   },
 ];
 

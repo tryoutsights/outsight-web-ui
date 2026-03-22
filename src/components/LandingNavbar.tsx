@@ -24,6 +24,12 @@ const LandingNavbar = () => {
             >
               Solutions
             </button>
+            <button
+              onClick={() => scrollTo("about")}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              About
+            </button>
             <Link
               to="/platform"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"

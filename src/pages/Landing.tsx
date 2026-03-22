@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Building2, BarChart3, MapPin, Layers, Tag, Satellite } from "lucide-react";
+import { Building2, BarChart3, MapPin, Satellite, Eye, Users, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -24,6 +24,25 @@ const solutions = [
     title: "Market Analysis",
     description: "Leverage satellite-derived insights to assess market trends, land use patterns, and regional growth.",
     image: "https://images.unsplash.com/photo-1460472178825-e5240623afd5?w=600&h=400&fit=crop",
+  },
+];
+
+const founders = [
+  {
+    name: "Rajneesh Malviya",
+    role: "CEO",
+    initials: "RM",
+    quote: "Scaling high-throughput distributed systems to solve real-world infrastructure challenges.",
+    experience: "Ex-Amazon Software Engineer | IIT Guwahati Alum",
+    linkedin: "https://www.linkedin.com/in/rajneesh04/",
+  },
+  {
+    name: "Bhasker Goel",
+    role: "CTO",
+    initials: "BG",
+    quote: "Building autonomous AI agents to drive intelligent, scalable Earth observation.",
+    experience: "Ex-Google & Ex-D.E. Shaw Software Engineer | IIT Guwahati Alum",
+    linkedin: "https://www.linkedin.com/in/bhasker-goel/",
   },
 ];
 
@@ -104,6 +123,22 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Vision */}
+      <section className="py-20 md:py-28 bg-card/50 border-y border-border/20">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-8">
+            <Eye className="h-3.5 w-3.5" />
+            Our Vision
+          </div>
+          <blockquote className="text-2xl md:text-3xl font-bold leading-snug tracking-tight text-foreground italic">
+            "Our vision is to build the definitive remote truth layer for Earth observation, starting with India's infrastructure boom."
+          </blockquote>
+          <p className="mt-8 text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            We envision a world where physical progress is as transparent, trackable, and verifiable as digital data. Our North Star is to transform raw satellite imagery into unfalsifiable, real-time insights that eliminate the "Trust Gap" in global construction. By providing developers, stakeholders, and enterprises with the absolute ground truth of any physical asset, we empower them to drive decisions and monitor project health based on objective, AI-driven certainty rather than vulnerable manual reporting.
+          </p>
+        </div>
+      </section>
+
       {/* Industry Solutions */}
       <section id="solutions" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -142,60 +177,52 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Platform Demo */}
-      <section className="py-20 md:py-28 bg-card/50 border-y border-border/20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+      {/* About Us */}
+      <section id="about" className="py-20 md:py-28 bg-card/50 border-y border-border/20">
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-              Extract the data that matters.
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase mb-6">
+              <Users className="h-3.5 w-3.5" />
+              About Us
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+              The Team Behind OutSights
             </h2>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Our platform transforms raw satellite imagery into actionable geospatial insights.
+            <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              OutSights was founded to solve the critical "Trust Gap" and multi-million dollar "leakage" in the construction and infrastructure sectors, where developers frequently lose capital to falsified progress reports. Built on an 8-year collaborative engineering history in robotics and deep-tech, we provide an unfalsifiable, remote truth layer for physical assets.
             </p>
           </div>
-          <div className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border/30 glow-cyan-sm">
-            <img
-              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=600&fit=crop"
-              alt="Satellite view of Earth"
-              className="w-full h-auto object-cover"
-              loading="lazy"
-            />
-            {/* Floating analytics cards */}
-            <div className="absolute top-6 left-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[200px]">
-              <div className="flex items-center gap-2 mb-1">
-                <Layers className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground">Building Footprint</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">12,847 structures detected</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                <div className="h-full w-[78%] rounded-full bg-primary" />
-              </div>
-            </div>
-            <div className="absolute bottom-6 right-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[200px]">
-              <div className="flex items-center gap-2 mb-1">
-                <Tag className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground">Land Use Classification</span>
-              </div>
-              <div className="mt-1.5 space-y-1">
-                {[
-                  { label: "Residential", pct: "42%" },
-                  { label: "Commercial", pct: "28%" },
-                  { label: "Industrial", pct: "18%" },
-                ].map((r) => (
-                  <div key={r.label} className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">{r.label}</span>
-                    <span className="text-foreground font-medium">{r.pct}</span>
+
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+            {founders.map((f) => (
+              <div
+                key={f.name}
+                className="glass rounded-xl p-6 border border-border/30 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                    {f.initials}
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">{f.name}</h3>
+                    <p className="text-sm text-primary font-medium">{f.role}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground italic mb-3 leading-relaxed">
+                  "{f.quote}"
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">{f.experience}</p>
+                <a
+                  href={f.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Linkedin className="h-3.5 w-3.5" />
+                  Connect on LinkedIn
+                </a>
               </div>
-            </div>
-            <div className="absolute top-6 right-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[180px]">
-              <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground">Change Detection</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">+14% development activity in Q4</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>

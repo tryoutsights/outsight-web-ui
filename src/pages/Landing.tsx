@@ -130,7 +130,7 @@ const Landing = () => {
             <Eye className="h-3.5 w-3.5" />
             Our Vision
           </div>
-          <blockquote className="text-2xl md:text-3xl font-bold leading-snug tracking-tight text-foreground italic">
+          <blockquote className="text-xl md:text-2xl font-bold leading-snug tracking-tight text-foreground italic">
             "Our vision is to build the definitive remote truth layer for Earth observation, starting with India's infrastructure boom."
           </blockquote>
           <p className="mt-8 text-muted-foreground max-w-3xl mx-auto leading-relaxed">

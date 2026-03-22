@@ -201,7 +201,7 @@ const Landing = () => {
                 className="glass rounded-xl p-6 border border-border/30 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base">
                     {f.initials}
                   </div>
                   <div>

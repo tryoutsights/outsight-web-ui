@@ -282,9 +282,12 @@ const Landing = () => {
               <span className="text-sm font-bold tracking-widest uppercase text-foreground">OutSights</span>
               <span className="text-xs text-muted-foreground ml-2">Geospatial Intelligence</span>
             </div>
-            <a href="mailto:contact@outsights.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button
+              onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               Contact Us
-            </a>
+            </button>
           </div>
           <div className="mt-6 text-center text-xs text-muted-foreground">
             © {new Date().getFullYear()} OutSights. All rights reserved.

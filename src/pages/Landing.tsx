@@ -61,7 +61,6 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <LandingNavbar />
 
       {/* Hero */}
       <section className="relative overflow-hidden">

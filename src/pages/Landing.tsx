@@ -200,7 +200,7 @@ const Landing = () => {
                 key={f.name}
                 className="group relative rounded-xl border border-border/30 bg-card overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
               >
-                <div className="h-48 overflow-hidden">
+                <div className="h-72 overflow-hidden">
                   <img
                     src={f.image}
                     alt={f.name}

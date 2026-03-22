@@ -34,7 +34,7 @@ const founders = [
     quote: "Scaling high-throughput distributed systems to solve real-world infrastructure challenges.",
     experience: "Ex-Amazon Software Engineer | IIT Guwahati Alum",
     linkedin: "https://www.linkedin.com/in/rajneesh04/",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop",
   },
   {
     name: "Bhasker Goel",

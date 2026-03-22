@@ -19,16 +19,16 @@ const LandingNavbar = () => {
           </Link>
           <div className="hidden md:flex items-center gap-5 ml-4">
             <button
-              onClick={() => scrollTo("solutions")}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Solutions
-            </button>
-            <button
               onClick={() => scrollTo("vision")}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Vision
+            </button>
+            <button
+              onClick={() => scrollTo("solutions")}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Solutions
             </button>
             <button
               onClick={() => scrollTo("about")}

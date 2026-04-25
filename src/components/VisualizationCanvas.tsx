@@ -12,7 +12,11 @@ interface ImageryData {
   satellite_name: string;
   cloud_cover: number;
   capture_date: string;
-  render_payload?: any;
+  render_payload?: {
+    cog_urls?: string[];
+    bbox?: number[];
+    [key: string]: unknown;
+  };
 }
 
 type CanvasState = "empty" | "loading" | "loaded" | "error";
@@ -55,12 +59,13 @@ const TiffImage: React.FC<{ url: string; alt: string; className?: string }> = ({
         if (!ctx) return;
 
         const imageData = ctx.createImageData(width, height);
+        const rasterData = rasters as ArrayLike<number>;
         // Map 3-band RGB Uint8 to 4-band RGBA for canvas rendering
         let j = 0;
-        for (let i = 0; i < (rasters as any).length; i += 3) {
-          imageData.data[j] = (rasters as any)[i];
-          imageData.data[j + 1] = (rasters as any)[i + 1];
-          imageData.data[j + 2] = (rasters as any)[i + 2];
+        for (let i = 0; i < rasterData.length; i += 3) {
+          imageData.data[j] = rasterData[i];
+          imageData.data[j + 1] = rasterData[i + 1];
+          imageData.data[j + 2] = rasterData[i + 2];
           imageData.data[j + 3] = 255; // Alpha
           j += 4;
         }
@@ -114,8 +119,9 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
   const imageCache = useRef<Map<string, string>>(new Map<string, string>());
 
   useEffect(() => {
+    const cachedImages = imageCache.current;
     return () => {
-      for (const url of imageCache.current.values()) {
+      for (const url of cachedImages.values()) {
         URL.revokeObjectURL(url);
       }
     };
@@ -228,7 +234,7 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
         let maxK = 0;
         for (let k = Math.min(10, sortedData.length); k >= 3; k--) {
           const interval = span / (k - 1);
-          let currentSelection = [minDate];
+          const currentSelection = [minDate];
           let valid = true;
 
           for (let i = 1; i < k - 1; i++) {
@@ -310,9 +316,10 @@ const VisualizationCanvas: React.FC<VisualizationCanvasProps> = ({
       const result = await res.json();
       setAnalysisResult(result);
       toast.success("Analysis complete.");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.error("Analysis Failed", { description: err.message });
+      const message = err instanceof Error ? err.message : "Unexpected analysis error.";
+      toast.error("Analysis Failed", { description: message });
     } finally {
       setIsAnalyzing(false);
     }

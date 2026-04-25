@@ -17,6 +17,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 // Mapbox token from environment variable
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const DEFAULT_LAT = 40.7128;
+const DEFAULT_LON = -74.006;
 
 interface MapPickerProps {
   initialLat?: number;
@@ -39,14 +41,10 @@ export const MapPicker: React.FC<MapPickerProps> = ({
   onOpenChange,
   onSelect,
 }) => {
-  // Default to a central location (e.g. New York) if no initial coordinates are given
-  const defaultLat = 40.7128;
-  const defaultLon = -74.0060;
-
   const [markerState, setMarkerState] = useState<{ lat: number; lon: number } | null>(null);
   const [viewState, setViewState] = useState({
-    latitude: defaultLat,
-    longitude: defaultLon,
+    latitude: DEFAULT_LAT,
+    longitude: DEFAULT_LON,
     zoom: 4,
   });
 
@@ -61,8 +59,8 @@ export const MapPicker: React.FC<MapPickerProps> = ({
   // Reset marker and view when dialog opens or initial coordinates change
   useEffect(() => {
     if (isOpen) {
-      const lat = initialLat !== undefined && !isNaN(initialLat) ? initialLat : defaultLat;
-      const lon = initialLon !== undefined && !isNaN(initialLon) ? initialLon : defaultLon;
+      const lat = initialLat !== undefined && !isNaN(initialLat) ? initialLat : DEFAULT_LAT;
+      const lon = initialLon !== undefined && !isNaN(initialLon) ? initialLon : DEFAULT_LON;
 
       if (initialLat !== undefined && initialLon !== undefined && !isNaN(initialLat) && !isNaN(initialLon)) {
         setMarkerState({ lat, lon });

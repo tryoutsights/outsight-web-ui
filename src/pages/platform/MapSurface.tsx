@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  DARK_TILE_URL,
   LEAFLET_CSS_URL,
   LEAFLET_JS_URL,
   LIGHT_TILE_URL,
@@ -81,7 +80,7 @@ const MapSurface = ({
         zoomControl: false,
         attributionControl: false,
       });
-      const initialUrl = isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL;
+      const initialUrl = LIGHT_TILE_URL;
       tileLayerRef.current = L.tileLayer(initialUrl, {
         maxZoom: 19,
         subdomains: "abcd",
@@ -130,8 +129,8 @@ const MapSurface = ({
   useEffect(() => {
     if (!tileLayerRef.current) return;
     const tileLayer = tileLayerRef.current as { setUrl: (url: string) => void };
-    tileLayer.setUrl(isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL);
-  }, [isDarkMode]);
+    tileLayer.setUrl(LIGHT_TILE_URL);
+  }, []);
 
   useEffect(() => {
     if (!mapInstance.current) return;

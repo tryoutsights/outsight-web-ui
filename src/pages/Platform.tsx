@@ -19,6 +19,7 @@ import {
   Sun,
   User,
 } from "lucide-react";
+import { useResizablePanel } from "@/hooks/use-resizable-panel";
 
 interface ImageryData {
   image_url: string;
@@ -87,6 +88,9 @@ const DARK_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}
 const LIGHT_TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 const LEAFLET_CSS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 const LEAFLET_JS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+const LEFT_PANEL_DEFAULT_WIDTH = 420;
+const LEFT_PANEL_MIN_WIDTH = 320;
+const LEFT_PANEL_MAX_WIDTH = 760;
 const DEFAULT_COPILOT_REPLY =
   "I couldn't infer clear actions. Try including cloud/area/band/coordinates.";
 const nearestAreaOption = (value: number) =>
@@ -239,6 +243,11 @@ const Platform = () => {
     "Provide a concise geospatial change summary and key features."
   );
   const imageCache = useRef<Map<string, string>>(new Map());
+  const { width: leftPanelWidth, startResize } = useResizablePanel({
+    initialWidth: LEFT_PANEL_DEFAULT_WIDTH,
+    minWidth: LEFT_PANEL_MIN_WIDTH,
+    maxWidth: LEFT_PANEL_MAX_WIDTH,
+  });
 
 
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -537,13 +546,14 @@ const Platform = () => {
       className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-slate-950 text-slate-200" : "bg-slate-50 text-slate-800"}`}
     >
       <div
-        className={`w-[420px] h-full border-r flex flex-col z-10 shadow-2xl transition-colors duration-300 ${isLeftDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
+        style={{ width: `${leftPanelWidth}px` }}
+        className={`h-full shrink-0 border-r flex flex-col z-10 shadow-2xl transition-colors duration-300 ${isLeftDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
           }`}
       >
         <div
           className={`p-5 border-b flex items-center justify-between bg-gradient-to-r transition-colors duration-300 ${isLeftDark
-              ? "border-slate-800 from-slate-900 to-slate-900"
-              : "border-slate-200 from-teal-50 to-emerald-50"
+            ? "border-slate-800 from-slate-900 to-slate-900"
+            : "border-slate-200 from-teal-50 to-emerald-50"
             }`}
         >
           <div className="flex items-center gap-3">
@@ -562,8 +572,8 @@ const Platform = () => {
           <button
             onClick={() => setIsDarkMode((p) => !p)}
             className={`p-2 rounded-full transition-colors shadow-sm border ${isLeftDark
-                ? "hover:bg-slate-800 text-slate-400 border-transparent hover:border-slate-700"
-                : "hover:bg-white text-slate-500 border-transparent hover:border-slate-200"
+              ? "hover:bg-slate-800 text-slate-400 border-transparent hover:border-slate-700"
+              : "hover:bg-white text-slate-500 border-transparent hover:border-slate-200"
               }`}
             title="Toggle Theme"
           >
@@ -578,12 +588,12 @@ const Platform = () => {
           <button
             onClick={() => setActiveTab("chat")}
             className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "chat"
-                ? isLeftDark
-                  ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
-                  : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
-                : isLeftDark
-                  ? "text-slate-400 hover:text-slate-300"
-                  : "text-slate-500 hover:text-slate-700"
+              ? isLeftDark
+                ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
+                : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
+              : isLeftDark
+                ? "text-slate-400 hover:text-slate-300"
+                : "text-slate-500 hover:text-slate-700"
               }`}
           >
             <Bot size={16} /> Copilot
@@ -591,12 +601,12 @@ const Platform = () => {
           <button
             onClick={() => setActiveTab("controls")}
             className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "controls"
-                ? isLeftDark
-                  ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
-                  : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
-                : isLeftDark
-                  ? "text-slate-400 hover:text-slate-300"
-                  : "text-slate-500 hover:text-slate-700"
+              ? isLeftDark
+                ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
+                : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
+              : isLeftDark
+                ? "text-slate-400 hover:text-slate-300"
+                : "text-slate-500 hover:text-slate-700"
               }`}
           >
             <Sliders size={16} /> Controls
@@ -604,22 +614,22 @@ const Platform = () => {
           <button
             onClick={() => setActiveTab("insights")}
             className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "insights"
-                ? isLeftDark
-                  ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
-                  : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
-                : isLeftDark
-                  ? "text-slate-400 hover:text-slate-300"
-                  : "text-slate-500 hover:text-slate-700"
+              ? isLeftDark
+                ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
+                : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
+              : isLeftDark
+                ? "text-slate-400 hover:text-slate-300"
+                : "text-slate-500 hover:text-slate-700"
               }`}
           >
             <FileText size={16} /> Insights
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {activeTab === "chat" && (
             <div
-              className={`flex-1 flex flex-col h-full transition-colors duration-300 ${isLeftDark ? "bg-slate-950" : "bg-slate-50"
+              className={`flex-1 min-h-0 flex flex-col h-full transition-colors duration-300 ${isLeftDark ? "bg-slate-950" : "bg-slate-50"
                 }`}
             >
               <div
@@ -685,8 +695,8 @@ const Platform = () => {
                     disabled={isChatTyping}
                     placeholder="Tell AI what to map..."
                     className={`w-full border rounded-full py-3 pl-5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all ${isLeftDark
-                        ? "bg-slate-950 border-slate-700 text-slate-200 placeholder-slate-500"
-                        : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
+                      ? "bg-slate-950 border-slate-700 text-slate-200 placeholder-slate-500"
+                      : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
                       }`}
                   />
                   <button type="submit" disabled={isChatTyping} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-br from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-full transition-all shadow-md">
@@ -699,7 +709,7 @@ const Platform = () => {
 
           {activeTab === "controls" && (
             <div
-              className={`flex-1 overflow-y-auto p-5 flex flex-col gap-6 transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
+              className={`flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6 transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
                 }`}
             >
               <div>
@@ -823,7 +833,7 @@ const Platform = () => {
 
           {activeTab === "insights" && (
             <div
-              className={`flex-1 flex flex-col transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
+              className={`flex-1 min-h-0 flex flex-col transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
                 }`}
             >
               <div
@@ -839,7 +849,7 @@ const Platform = () => {
                   {isGeneratingInsights ? "Analyzing Region..." : "Generate AI Report"}
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 text-sm leading-relaxed">
+              <div className="flex-1 min-h-0 overflow-y-auto p-6 text-sm leading-relaxed">
                 {isGeneratingInsights ? (
                   <div className={`flex flex-col items-center justify-center h-full space-y-4 ${isLeftDark ? "text-teal-400" : "text-teal-600"}`}>
                     <Loader2 className="animate-spin" size={28} />
@@ -864,6 +874,14 @@ const Platform = () => {
           )}
         </div>
       </div>
+
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize left dashboard"
+        onMouseDown={startResize}
+        className={`w-1 shrink-0 cursor-col-resize transition-colors ${isDarkMode ? "bg-slate-800/80 hover:bg-teal-500/80" : "bg-slate-300 hover:bg-teal-500/70"}`}
+      />
 
       <div className={`flex-1 relative overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-[#050505]" : "bg-slate-200"}`}>
         <MapSurface

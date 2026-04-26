@@ -20,198 +20,29 @@ import {
   User,
 } from "lucide-react";
 import { useResizablePanel } from "@/hooks/use-resizable-panel";
-
-interface ImageryData {
-  image_url: string;
-  satellite_name: string;
-  cloud_cover: number;
-  capture_date: string;
-  render_payload?: {
-    cog_urls?: string[];
-    bbox?: number[];
-    [key: string]: unknown;
-  };
-}
-
-type ActiveTab = "chat" | "controls" | "insights";
-type SpectralBand = "NDBI" | "NDVI" | "TrueColor";
-type Coordinates = { lat: number; lng: number };
-type DateRange = { startDate: string; endDate: string };
-type RetrieveParams = {
-  lat: number;
-  lon: number;
-  startDate: string;
-  endDate: string;
-  areaSize: number;
-  maxCloudCover: number;
-};
-type ChatMessage = { role: "bot" | "user"; text: string };
-type CopilotExtraction = {
-  updatedCoordinates: Coordinates | null;
-  updatedCloudCover: number | null;
-  updatedAreaSize: number | null;
-  updatedBand: SpectralBand | null;
-  updatedZoom: number | null;
-  updatedDateRange: DateRange | null;
-  triggerRun: boolean;
-  replyText: string;
-};
-
-declare global {
-  interface Window {
-    L?: {
-      map: (el: HTMLElement, options: Record<string, unknown>) => {
-        on: (event: string, cb: () => void) => void;
-        getCenter: () => { lat: number; lng: number };
-        getZoom: () => number;
-        setView: (center: [number, number], zoom: number) => void;
-        setZoom: (zoom: number) => void;
-        invalidateSize: () => void;
-        remove: () => void;
-      };
-      tileLayer: (
-        url: string,
-        options: Record<string, unknown>
-      ) => { addTo: (map: unknown) => { setUrl: (url: string) => void } };
-      imageOverlay: (
-        url: string,
-        bounds: [[number, number], [number, number]],
-        options?: Record<string, unknown>
-      ) => { addTo: (map: unknown) => unknown };
-    };
-  }
-}
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-const AREA_SIZE_OPTIONS = [1, 4, 25, 100] as const;
-const DARK_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const LIGHT_TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-const LEAFLET_CSS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-const LEAFLET_JS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-const LEFT_PANEL_DEFAULT_WIDTH = 420;
-const LEFT_PANEL_MIN_WIDTH = 320;
-const LEFT_PANEL_MAX_WIDTH = 760;
-const DEFAULT_COPILOT_REPLY =
-  "I couldn't infer clear actions. Try including cloud/area/band/coordinates.";
-const nearestAreaOption = (value: number) =>
-  AREA_SIZE_OPTIONS.reduce((prev, curr) =>
-    Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-  );
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const isFiniteLatLng = (coords: Coordinates) =>
-  Number.isFinite(coords.lat) &&
-  Number.isFinite(coords.lng) &&
-  coords.lat >= -90 &&
-  coords.lat <= 90 &&
-  coords.lng >= -180 &&
-  coords.lng <= 180;
-const hasValidBbox = (bbox?: number[]): bbox is [number, number, number, number] =>
-  Array.isArray(bbox) && bbox.length === 4 && bbox.every((v) => Number.isFinite(v));
-
-const parseFallbackExtraction = (text: string, currentZoom: number): CopilotExtraction => {
-  const lower = text.toLowerCase();
-  const latLonPair = lower.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
-  const latMatch = lower.match(/lat(?:itude)?(?:\s+is|\s+to)?\s*[:=]?\s*(-?\d+(?:\.\d+)?)/);
-  const lonMatch = lower.match(/(?:lon|lng|longitude)(?:\s+is|\s+to)?\s*[:=]?\s*(-?\d+(?:\.\d+)?)/);
-  const cloudClause = lower.match(/(?:cloud(?:\s*cover)?)[^0-9-]*(-?\d{1,3})/);
-  const areaClause = lower.match(/(?:area|extent|size)[^0-9-]*(-?\d+(?:\.\d+)?)/);
-  const zoomMatch = lower.match(/zoom(?:\s+level)?(?:\s+is|\s+to)?\s*[:=]?\s*(\d{1,2})/);
-  const fromToMatch = lower.match(/(?:from|start)\s*(\d{4}-\d{2}-\d{2}).*?(?:to|end)\s*(\d{4}-\d{2}-\d{2})/);
-
-  const extraction: CopilotExtraction = {
-    updatedCoordinates: null,
-    updatedCloudCover: cloudClause ? clamp(Number(cloudClause[1]), 0, 100) : null,
-    updatedAreaSize: areaClause ? nearestAreaOption(Number(areaClause[1])) : null,
-    updatedBand: lower.includes("ndvi")
-      ? "NDVI"
-      : lower.includes("ndbi")
-        ? "NDBI"
-        : lower.includes("truecolor") || lower.includes("true color") || lower.includes("rgb")
-          ? "TrueColor"
-          : null,
-    updatedZoom: zoomMatch
-      ? Number(zoomMatch[1])
-      : /\bzoom in\b/.test(lower)
-        ? currentZoom + 1
-        : /\bzoom out\b/.test(lower)
-          ? currentZoom - 1
-          : null,
-    updatedDateRange: fromToMatch ? { startDate: fromToMatch[1], endDate: fromToMatch[2] } : null,
-    triggerRun: /(run|execute|retrieve|fetch|analy[sz]e|go)\b/.test(lower),
-    replyText: "",
-  };
-
-  if (latLonPair) {
-    const pair: Coordinates = { lat: Number(latLonPair[1]), lng: Number(latLonPair[2]) };
-    if (isFiniteLatLng(pair)) extraction.updatedCoordinates = pair;
-  }
-
-  if (latMatch || lonMatch) {
-    const candidate: Coordinates = {
-      lat: latMatch ? Number(latMatch[1]) : extraction.updatedCoordinates?.lat ?? 0,
-      lng: lonMatch ? Number(lonMatch[1]) : extraction.updatedCoordinates?.lng ?? 0,
-    };
-    if (isFiniteLatLng(candidate)) extraction.updatedCoordinates = candidate;
-  }
-
-  if (!extraction.updatedCoordinates && /(location|coordinate|coords)/.test(lower)) {
-    const nums = lower.match(/-?\d+(?:\.\d+)?/g);
-    if (nums && nums.length >= 2) {
-      const candidate: Coordinates = { lat: Number(nums[0]), lng: Number(nums[1]) };
-      if (isFiniteLatLng(candidate)) extraction.updatedCoordinates = candidate;
-    }
-  }
-
-  return extraction;
-};
-
-const fetchImagery = async (lat: number, lon: number, startDate: string, endDate: string, areaSize: number, maxCloudCover: number): Promise<ImageryData[]> => {
-  const res = await fetch(
-    `${API_BASE_URL}/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
-  );
-  if (!res.ok) {
-    const text = await res.text();
-    let errorMessage = `Request failed (${res.status})`;
-    try {
-      const errorJson = JSON.parse(text);
-      if (errorJson.detail) {
-        try {
-          const nestedJson = JSON.parse(errorJson.detail);
-          errorMessage = nestedJson.detail || errorJson.detail;
-        } catch {
-          errorMessage = errorJson.detail;
-        }
-      } else {
-        errorMessage = text;
-      }
-    } catch {
-      errorMessage = text || errorMessage;
-    }
-    throw new Error(errorMessage);
-  }
-  const json = await res.json();
-  if (!Array.isArray(json)) {
-    throw new Error("Invalid response format: expected an array");
-  }
-  return json.map((item: Record<string, unknown>): ImageryData => {
-    const imageUrlRaw = typeof item.image_url === "string" ? item.image_url : "";
-    const url = imageUrlRaw.startsWith("/") ? `${API_BASE_URL}${imageUrlRaw}` : imageUrlRaw;
-    const satelliteName = typeof item.satellite === "string" ? item.satellite : "Sentinel-2";
-    const cloud = typeof item.cloud_cover === "number" ? item.cloud_cover : 0;
-    const capture = typeof item.capture_date === "string" ? item.capture_date : "";
-    const renderPayload =
-      item.render_payload && typeof item.render_payload === "object"
-        ? (item.render_payload as ImageryData["render_payload"])
-        : undefined;
-    return {
-      image_url: url,
-      satellite_name: satelliteName,
-      cloud_cover: cloud,
-      capture_date: capture,
-      render_payload: renderPayload,
-    };
-  });
-};
+import {
+  AREA_SIZE_OPTIONS,
+  COPILOT_THINKING_TEXT,
+  LEFT_PANEL_DEFAULT_WIDTH,
+  LEFT_PANEL_MAX_WIDTH,
+  LEFT_PANEL_MIN_WIDTH,
+  API_BASE_URL,
+  DEFAULT_COPILOT_REPLY,
+  clamp,
+  fetchImagery,
+  nearestAreaOption,
+  parseFallbackExtraction,
+} from "./platform/lib";
+import MapSurface from "./platform/MapSurface";
+import type {
+  ActiveTab,
+  ChatMessage,
+  Coordinates,
+  CopilotExtraction,
+  DateRange,
+  RetrieveParams,
+  SpectralBand,
+} from "./platform/lib";
 
 const Platform = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -304,9 +135,17 @@ const Platform = () => {
     }
   };
 
-  const appendChatMessages = (userText: string, botText: string) => {
-    setMessages((prev) => [...prev, { role: "user", text: userText }, { role: "bot", text: botText }]);
-    setChatInput("");
+  const setLatestThinkingMessage = (botText: string) => {
+    setMessages((prev) => {
+      const next = [...prev];
+      for (let i = next.length - 1; i >= 0; i -= 1) {
+        if (next[i].role === "bot" && next[i].text === COPILOT_THINKING_TEXT) {
+          next[i] = { role: "bot", text: botText };
+          return next;
+        }
+      }
+      return [...next, { role: "bot", text: botText }];
+    });
   };
 
   useEffect(() => {
@@ -423,6 +262,14 @@ const Platform = () => {
     e.preventDefault();
     if (!chatInput.trim() || isChatTyping) return;
     const text = chatInput.trim();
+
+    // Reflect user intent immediately, then show in-thread bot thinking state.
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text },
+      { role: "bot", text: COPILOT_THINKING_TEXT },
+    ]);
+    setChatInput("");
     setIsChatTyping(true);
 
     const applyExtraction = (parsed: CopilotExtraction): string => {
@@ -517,7 +364,7 @@ const Platform = () => {
 
         if (response.ok) {
           const parsed = (await response.json()) as CopilotExtraction;
-          appendChatMessages(text, applyExtraction(parsed));
+          setLatestThinkingMessage(applyExtraction(parsed));
           return;
         }
 
@@ -533,7 +380,7 @@ const Platform = () => {
       }
 
       const fallbackExtraction = parseFallbackExtraction(text, zoom);
-      appendChatMessages(text, applyExtraction(fallbackExtraction));
+      setLatestThinkingMessage(applyExtraction(fallbackExtraction));
     } finally {
       setIsChatTyping(false);
     }
@@ -657,22 +504,17 @@ const Platform = () => {
                       {msg.role === "user" ? <User size={14} /> : <Bot size={14} />}
                     </div>
                     <div className={`p-3 rounded-2xl text-sm max-w-[85%] whitespace-pre-wrap shadow-sm ${msg.role === "user" ? "bg-gradient-to-br from-teal-600 to-emerald-600 text-white rounded-tr-none" : isLeftDark ? "bg-slate-900 text-slate-300 border border-slate-800 rounded-tl-none" : "bg-white text-slate-700 border border-slate-100 rounded-tl-none"}`}>
-                      {msg.text}
+                      {msg.role === "bot" && msg.text === COPILOT_THINKING_TEXT ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 size={14} className="animate-spin" />
+                          {COPILOT_THINKING_TEXT}
+                        </span>
+                      ) : (
+                        msg.text
+                      )}
                     </div>
                   </div>
                 ))}
-                {isChatTyping && (
-                  <div className="flex gap-3">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br from-teal-500 to-emerald-600 text-white">
-                      <Bot size={14} />
-                    </div>
-                    <div className={`p-3 rounded-2xl text-sm max-w-[85%] shadow-sm border rounded-tl-none flex items-center gap-2 ${isLeftDark ? "bg-slate-900 text-slate-300 border-slate-800" : "bg-white text-slate-700 border-slate-100"
-                      }`}>
-                      <Loader2 size={14} className="animate-spin" />
-                      Thinking...
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div
@@ -917,232 +759,5 @@ const Platform = () => {
     </div>
   );
 };
-
-function MapSurface({
-  coordinates,
-  setCoordinates,
-  zoom,
-  setZoom,
-  areaSize,
-  hasOverlay,
-  band,
-  isGenerating,
-  isDarkMode,
-  overlayUrl,
-  overlayBbox,
-  overlayAreaSize,
-}: {
-  coordinates: Coordinates;
-  setCoordinates: React.Dispatch<React.SetStateAction<Coordinates>>;
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
-  areaSize: number;
-  hasOverlay: boolean;
-  band: "NDBI" | "NDVI" | "TrueColor";
-  isGenerating: boolean;
-  isDarkMode: boolean;
-  overlayUrl: string;
-  overlayBbox?: number[];
-  overlayAreaSize?: number;
-}) {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstance = useRef<unknown>(null);
-  const tileLayerRef = useRef<unknown>(null);
-  const imageOverlayRef = useRef<unknown>(null);
-  const hideTimerRef = useRef<number | null>(null);
-  const [showSelectionBox, setShowSelectionBox] = useState(true);
-
-  useEffect(() => {
-    const initMap = () => {
-      if (mapInstance.current || !window.L || !mapRef.current) return;
-      const L = window.L;
-      if (!L) return;
-      const map = L.map(mapRef.current, {
-        center: [coordinates.lat, coordinates.lng],
-        zoom,
-        zoomControl: false,
-        attributionControl: false,
-      });
-      const initialUrl = isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL;
-      tileLayerRef.current = L.tileLayer(initialUrl, { maxZoom: 19, subdomains: "abcd" }).addTo(map);
-      map.on("moveend", () => {
-        const center = map.getCenter();
-        setCoordinates({ lat: center.lat, lng: center.lng });
-      });
-      map.on("zoomend", () => setZoom(map.getZoom()));
-      mapInstance.current = map;
-      setTimeout(() => map.invalidateSize(), 100);
-    };
-
-    if (!document.getElementById("leaflet-css")) {
-      const css = document.createElement("link");
-      css.id = "leaflet-css";
-      css.rel = "stylesheet";
-      css.href = LEAFLET_CSS_URL;
-      document.head.appendChild(css);
-    }
-    const scriptId = "leaflet-js";
-    const script = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (!script) {
-      const next = document.createElement("script");
-      next.id = scriptId;
-      next.src = LEAFLET_JS_URL;
-      next.onload = initMap;
-      document.head.appendChild(next);
-    } else if (window.L) {
-      initMap();
-    } else {
-      script.addEventListener("load", initMap);
-    }
-
-    return () => {
-      if (mapInstance.current) {
-        const map = mapInstance.current as { remove: () => void };
-        map.remove();
-        mapInstance.current = null;
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!tileLayerRef.current) return;
-    const tileLayer = tileLayerRef.current as { setUrl: (url: string) => void };
-    const url = isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL;
-    tileLayer.setUrl(url);
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    const map = mapInstance.current as {
-      getCenter: () => { lat: number; lng: number };
-      setView: (center: [number, number], zoom: number) => void;
-    };
-    const center = map.getCenter();
-    if (Math.abs(center.lat - coordinates.lat) > 0.0001 || Math.abs(center.lng - coordinates.lng) > 0.0001) {
-      map.setView([coordinates.lat, coordinates.lng], zoom);
-    }
-  }, [coordinates.lat, coordinates.lng, zoom]);
-
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    const map = mapInstance.current as { getZoom: () => number; setZoom: (zoom: number) => void };
-    if (map.getZoom() !== zoom) {
-      map.setZoom(zoom);
-    }
-  }, [zoom]);
-
-  useEffect(() => {
-    if (!mapInstance.current || !window.L) return;
-    const map = mapInstance.current as {
-      addLayer?: (layer: unknown) => void;
-      removeLayer: (layer: unknown) => void;
-    };
-    const L = window.L;
-
-    if (imageOverlayRef.current) {
-      map.removeLayer(imageOverlayRef.current);
-      imageOverlayRef.current = null;
-    }
-
-    if (!hasOverlay || !overlayUrl || !hasValidBbox(overlayBbox)) return;
-
-    const [minLon, minLat, maxLon, maxLat] = overlayBbox;
-    const southWest: [number, number] = [minLat, minLon];
-    const northEast: [number, number] = [maxLat, maxLon];
-    imageOverlayRef.current = L.imageOverlay(overlayUrl, [southWest, northEast], {
-      opacity: 0.72,
-      interactive: false,
-    }).addTo(map);
-
-    return () => {
-      if (imageOverlayRef.current) {
-        map.removeLayer(imageOverlayRef.current);
-        imageOverlayRef.current = null;
-      }
-    };
-  }, [hasOverlay, overlayUrl, overlayBbox]);
-
-  useEffect(() => {
-    setShowSelectionBox(true);
-    if (hideTimerRef.current) {
-      window.clearTimeout(hideTimerRef.current);
-    }
-    hideTimerRef.current = window.setTimeout(() => {
-      setShowSelectionBox(false);
-      hideTimerRef.current = null;
-    }, 3000);
-
-    return () => {
-      if (hideTimerRef.current) {
-        window.clearTimeout(hideTimerRef.current);
-        hideTimerRef.current = null;
-      }
-    };
-  }, [coordinates.lat, coordinates.lng, zoom, areaSize, isGenerating, hasOverlay, overlayUrl, overlayBbox, band]);
-
-  const metersPerPixel = 156543.03392 * Math.cos((coordinates.lat * Math.PI) / 180) / Math.pow(2, zoom);
-  const sideLengthMeters = Math.sqrt(areaSize) * 1000;
-  let boxWidthPixels = sideLengthMeters / metersPerPixel;
-  let boxHeightPixels = sideLengthMeters / metersPerPixel;
-  const canUseOverlayBboxForBox = hasValidBbox(overlayBbox) && overlayAreaSize === areaSize;
-
-  if (canUseOverlayBboxForBox) {
-    const [minLon, minLat, maxLon, maxLat] = overlayBbox;
-    const map = mapInstance.current as {
-      latLngToContainerPoint?: (latLng: [number, number]) => { x: number; y: number };
-    } | null;
-
-    if (map?.latLngToContainerPoint) {
-      const southWestPx = map.latLngToContainerPoint([minLat, minLon]);
-      const northEastPx = map.latLngToContainerPoint([maxLat, maxLon]);
-      boxWidthPixels = Math.abs(northEastPx.x - southWestPx.x);
-      boxHeightPixels = Math.abs(northEastPx.y - southWestPx.y);
-    } else {
-      const centerLat = (minLat + maxLat) / 2;
-      const latMeters = Math.abs(maxLat - minLat) * 111320;
-      const lonMeters = Math.abs(maxLon - minLon) * 111320 * Math.cos((centerLat * Math.PI) / 180);
-      boxWidthPixels = lonMeters / metersPerPixel;
-      boxHeightPixels = latMeters / metersPerPixel;
-    }
-  }
-
-  boxWidthPixels = Math.max(boxWidthPixels, 20);
-  boxHeightPixels = Math.max(boxHeightPixels, 20);
-
-  return (
-    <div className="absolute inset-0">
-      <div className={`absolute inset-0 z-0 ${isDarkMode ? "bg-[#050505]" : "bg-slate-200"} transition-colors duration-300`}>
-        <div ref={mapRef} className="absolute inset-0" />
-      </div>
-
-      <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center z-[400] transition-opacity duration-500 ${showSelectionBox ? "opacity-100" : "opacity-0"
-          }`}
-      >
-        <div
-          className={`border-2 ${isDarkMode ? "border-teal-500/50 bg-teal-500/10" : "border-teal-600/60 bg-teal-600/10"} border-dashed relative transition-all duration-300 flex items-center justify-center overflow-hidden`}
-          style={{ width: `${boxWidthPixels}px`, height: `${boxHeightPixels}px` }}
-        >
-          {isGenerating && (
-            <div
-              className={`absolute inset-0 ${isDarkMode ? "bg-teal-500/20 border-teal-400" : "bg-teal-600/20 border-teal-600"} animate-pulse border-t-2`}
-              style={{ animation: "scan 2s linear infinite" }}
-            />
-          )}
-          {hasOverlay && (
-            <div
-              className={`absolute inset-0 opacity-40 transition-opacity duration-500 ${band === "NDBI" ? "bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-600 via-orange-500/40 to-transparent" : band === "NDVI" ? "bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500 via-green-600/40 to-transparent" : "bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-600/40 to-transparent"}`}
-            />
-          )}
-        </div>
-        <div className="absolute flex items-center justify-center">
-          <div className={`w-8 h-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} shadow-sm`} />
-          <div className={`h-8 w-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} absolute shadow-sm`} />
-          <div className="w-1.5 h-1.5 bg-white rounded-full z-10 shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default Platform;

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity,
@@ -390,7 +391,9 @@ const Platform = () => {
 
   return (
     <div
-      className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-slate-950 text-slate-200" : "bg-slate-50 text-slate-800"}`}
+      className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-300 ${
+        isDarkMode ? "bg-slate-950 text-slate-200" : "bg-slate-50 text-slate-800"
+      }`}
     >
       <div
         style={{ width: `${leftPanelWidth}px` }}
@@ -403,19 +406,19 @@ const Platform = () => {
             : "border-slate-200 from-teal-50 to-emerald-50"
             }`}
         >
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 group" title="Back to home">
             <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-2 rounded-lg text-white flex-shrink-0 shadow-md">
               <Satellite size={20} />
             </div>
             <div>
-              <h1 className={`font-bold text-lg tracking-wide leading-tight ${isLeftDark ? "text-white" : "text-slate-900"}`}>
+              <h1 className={`font-bold text-lg tracking-wide leading-tight transition-colors ${isLeftDark ? "text-white group-hover:text-teal-300" : "text-slate-900 group-hover:text-teal-600"}`}>
                 Outsights
               </h1>
               <p className={`text-xs font-medium ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
                 AI-Guided Spatial Analytics
               </p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => setIsDarkMode((p) => !p)}
             className={`p-2 rounded-full transition-colors shadow-sm border ${isLeftDark
@@ -725,7 +728,11 @@ const Platform = () => {
         className={`w-1 shrink-0 cursor-col-resize transition-colors ${isDarkMode ? "bg-slate-800/80 hover:bg-teal-500/80" : "bg-slate-300 hover:bg-teal-500/70"}`}
       />
 
-      <div className={`flex-1 relative overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-[#050505]" : "bg-slate-200"}`}>
+      <div
+        className={`flex-1 relative overflow-hidden transition-colors duration-300 ${
+          isDarkMode ? "bg-[#050505]" : "bg-slate-200"
+        }`}
+      >
         <MapSurface
           coordinates={coordinates}
           setCoordinates={setCoordinates}

@@ -1,6 +1,6 @@
 
 
-# OutSights Landing Page
+# Outsights Landing Page
 
 ## Overview
 Create a B2B SaaS landing page at `/` and move the existing EO tool to `/platform`. Maintain the same dark theme with neon cyan accents and glassmorphic design language.
@@ -10,7 +10,7 @@ Create a B2B SaaS landing page at `/` and move the existing EO tool to `/platfor
 ### 1. New Page: `src/pages/Landing.tsx`
 The main landing page with all 6 sections:
 
-- **Navbar**: Sticky, glassmorphic (`backdrop-blur-xl`), logo "OutSights" with a satellite icon, nav links ("Solutions", "Platform Demo" linking to `/platform`), and a solid cyan "Join Waitlist" button.
+- **Navbar**: Sticky, glassmorphic (`backdrop-blur-xl`), logo "Outsights" with a satellite icon, nav links ("Solutions", "Platform Demo" linking to `/platform`), and a solid cyan "Join Waitlist" button.
 - **Hero**: Two-column layout. Left: pill badge, bold headline, subtext, two CTA buttons. Right: Unsplash aerial construction image with a floating "Site Status: Active Development" card overlay.
 - **Industry Solutions**: 3-column card grid. Each card has an Unsplash image top half, floating icon overlapping the boundary, title + description bottom half. Hover lifts with shadow.
 - **Platform Demo**: Dark contrast section. Large satellite Unsplash image centered with 2-3 frosted-glass overlay cards ("Building Footprint", "Land Use Classification").

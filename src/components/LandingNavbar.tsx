@@ -14,7 +14,7 @@ const LandingNavbar = () => {
           <Link to="/" className="flex items-center gap-2 group">
             <Satellite className="h-5 w-5 text-primary transition-transform group-hover:rotate-12" />
             <span className="text-base font-bold tracking-widest uppercase text-foreground">
-              OutSights
+              Outsights
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-5 ml-4">

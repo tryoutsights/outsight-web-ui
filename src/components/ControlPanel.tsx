@@ -134,7 +134,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onRetrieve, isLoading }) =>
       <div className="flex items-center gap-2 mb-4">
         <Satellite className="h-5 w-5 text-primary" />
         <h1 className="text-sm font-semibold tracking-widest uppercase text-foreground">
-          Outsight
+          Outsights
         </h1>
       </div>
 

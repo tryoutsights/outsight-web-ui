@@ -1,6 +1,6 @@
-# Outsight MVP - Earth Observation Interface 🛰️
+# Outsights MVP - Earth Observation Interface 🛰️
 
-Outsight is a high-performance web interface designed to dynamically fetch, filter, and render historical satellite imagery across the globe. Built precisely on top of modern frontend primitives, it interfaces seamlessly with a custom FastAPI + STAC (SpatioTemporal Asset Catalog) raster backend to visualize `Sentinel-2/L2A` Open Data.
+Outsights is a high-performance web interface designed to dynamically fetch, filter, and render historical satellite imagery across the globe. Built precisely on top of modern frontend primitives, it interfaces seamlessly with a custom FastAPI + STAC (SpatioTemporal Asset Catalog) raster backend to visualize `Sentinel-2/L2A` Open Data.
 
 ## 🚀 Key Features
 
@@ -46,7 +46,7 @@ The repository requires Node.js (v20+ recommended).
    ```sh
    npm run dev
    ```
-   *The UI will normally launch on `http://localhost:8080`. Note that it expects the Outsight FastAPI backend to be running concurrently on port `8000` for the `api/imagery` and `api/render` endpoints.*
+   *The UI will normally launch on `http://localhost:8080`. Note that it expects the Outsights FastAPI backend to be running concurrently on port `8000` for the `api/imagery` and `api/render` endpoints.*
 
 ## 📸 Interface Preview
 

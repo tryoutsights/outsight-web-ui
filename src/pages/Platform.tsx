@@ -8,7 +8,6 @@ import {
   CloudRain,
   Crosshair,
   FileText,
-  Layers,
   Loader2,
   Maximize,
   Moon,
@@ -16,6 +15,7 @@ import {
   Send,
   Sliders,
   Sparkles,
+  Satellite,
   Sun,
   User,
 } from "lucide-react";
@@ -548,7 +548,7 @@ const Platform = () => {
         >
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-2 rounded-lg text-white flex-shrink-0 shadow-md">
-              <Layers size={20} />
+              <Satellite size={20} />
             </div>
             <div>
               <h1 className={`font-bold text-lg tracking-wide leading-tight ${isLeftDark ? "text-white" : "text-slate-900"}`}>

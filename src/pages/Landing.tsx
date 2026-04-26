@@ -59,7 +59,7 @@ const Landing = () => {
                 <span className="text-primary">from space.</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-                OutSights delivers satellite imagery and geospatial intelligence to help real estate and construction teams make faster, data-driven decisions.
+                Outsights delivers satellite imagery and geospatial intelligence to help real estate and construction teams make faster, data-driven decisions.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
@@ -236,7 +236,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Satellite className="h-4 w-4 text-primary" />
-              <span className="text-sm font-bold tracking-widest uppercase text-foreground">OutSights</span>
+              <span className="text-sm font-bold tracking-widest uppercase text-foreground">Outsights</span>
               <span className="text-xs text-muted-foreground ml-2">Geospatial Intelligence</span>
             </div>
             <a href="mailto:contact@outsights.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -244,7 +244,7 @@ const Landing = () => {
             </a>
           </div>
           <div className="mt-6 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} OutSights. All rights reserved.
+            © {new Date().getFullYear()} Outsights. All rights reserved.
           </div>
         </div>
       </footer>

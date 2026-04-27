@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import { supabase } from "@/lib/supabase";
 
+const AUTH_NEXT_STORAGE_KEY = "outsights.auth.next";
+
 /**
  * Landing page for the OAuth redirect. `supabase-js` parses the URL
  * fragment in the background (via `detectSessionInUrl: true`); we just need
@@ -19,8 +21,27 @@ const AuthCallback = () => {
       await supabase.auth.getSession();
       if (cancelled) return;
       const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") ?? "/platform";
-      navigate(next, { replace: true });
+      const nextFromQuery = params.get("next");
+      const nextFromStorage = (() => {
+        try {
+          return sessionStorage.getItem(AUTH_NEXT_STORAGE_KEY);
+        } catch {
+          return null;
+        }
+      })();
+      const rawNext = nextFromQuery ?? nextFromStorage ?? "/platform";
+      const safeNext =
+        rawNext.startsWith("/") && !rawNext.startsWith("/auth/callback")
+          ? rawNext
+          : "/platform";
+
+      try {
+        sessionStorage.removeItem(AUTH_NEXT_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures.
+      }
+
+      navigate(safeNext, { replace: true });
     };
     void finish();
     return () => {

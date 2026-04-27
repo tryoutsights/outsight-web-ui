@@ -13,6 +13,7 @@ import { AuthContext, type AuthContextValue } from "./auth-context";
 import { SignInModal } from "./SignInModal";
 
 type AuthProviderProps = { children: ReactNode };
+const AUTH_NEXT_STORAGE_KEY = "outsights.auth.next";
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -56,7 +57,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error("[auth] cannot sign in: Supabase env vars missing");
       return;
     }
-    const target = redirectTo ?? `${window.location.origin}/auth/callback`;
+    const target =
+      redirectTo ??
+      (() => {
+        const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const safeNext = currentPath.startsWith("/auth/callback")
+          ? "/platform"
+          : currentPath;
+        try {
+          sessionStorage.setItem(AUTH_NEXT_STORAGE_KEY, safeNext);
+        } catch {
+          // Ignore storage failures and rely on query param fallback.
+        }
+        return `${window.location.origin}/auth/callback`;
+      })();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: target },

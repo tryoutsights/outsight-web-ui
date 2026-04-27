@@ -1,3 +1,5 @@
+import { apiFetch } from "@/lib/api-client";
+
 export type ActiveTab = "chat" | "controls" | "insights";
 export type SpectralBand = "NDBI" | "NDVI" | "TrueColor";
 export type DateRange = { startDate: string; endDate: string };
@@ -152,8 +154,10 @@ export const fetchImagery = async (
   areaSize: number,
   maxCloudCover: number
 ): Promise<ImageryData[]> => {
-  const res = await fetch(
-    `${API_BASE_URL}/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
+  // Imagery endpoint is anonymous-friendly, but we still attach a token when
+  // available so server-side analytics can scope to a user.
+  const res = await apiFetch(
+    `/api/imagery?lat=${lat}&lon=${lon}&start_date=${startDate}&end_date=${endDate}&area_size=${areaSize}&max_cloud=${maxCloudCover}`
   );
 
   if (!res.ok) {

@@ -20,14 +20,16 @@ import {
   Sun,
   User,
 } from "lucide-react";
+import { UserMenu } from "@/components/auth/UserMenu";
+import { useAuth } from "@/hooks/use-auth";
 import { useResizablePanel } from "@/hooks/use-resizable-panel";
+import { apiFetch } from "@/lib/api-client";
 import {
   AREA_SIZE_OPTIONS,
   COPILOT_THINKING_TEXT,
   LEFT_PANEL_DEFAULT_WIDTH,
   LEFT_PANEL_MAX_WIDTH,
   LEFT_PANEL_MIN_WIDTH,
-  API_BASE_URL,
   DEFAULT_COPILOT_REPLY,
   clamp,
   fetchImagery,
@@ -80,6 +82,7 @@ const Platform = () => {
     minWidth: LEFT_PANEL_MIN_WIDTH,
     maxWidth: LEFT_PANEL_MAX_WIDTH,
   });
+  const { requestSignIn } = useAuth();
 
 
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -183,7 +186,7 @@ const Platform = () => {
 
     const fetchRendered = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/render`, {
+        const response = await apiFetch(`/api/render`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(currentItem.render_payload),
@@ -239,13 +242,18 @@ const Platform = () => {
         bbox: selectedItem.render_payload.bbox || [],
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/analyze`, {
+      const res = await apiFetch(`/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (res.status === 401) {
+        // Hard-gated endpoint: prompt the user to sign in and abort silently.
+        requestSignIn("Sign in to run AI-powered geospatial analysis.");
+        return;
+      }
       if (!res.ok) {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.detail || "Analysis failed.");
       }
       const result = await res.json();
@@ -349,7 +357,7 @@ const Platform = () => {
 
     try {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/copilot/extract`, {
+        const response = await apiFetch(`/api/copilot/extract`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -366,6 +374,20 @@ const Platform = () => {
         if (response.ok) {
           const parsed = (await response.json()) as CopilotExtraction;
           setLatestThinkingMessage(applyExtraction(parsed));
+          return;
+        }
+
+        if (response.status === 401) {
+          // Hard-gated: prompt the user to sign in and stop here. We
+          // intentionally do NOT fall through to the local parser, because it
+          // would post a misleading reply behind the sign-in modal and apply
+          // state changes the user never opted into.
+          requestSignIn(
+            "Sign in to use the AI copilot for natural-language commands.",
+          );
+          setLatestThinkingMessage(
+            "Sign in to chat with the AI copilot. I’ll pick up your request as soon as you’re back.",
+          );
           return;
         }
 
@@ -419,16 +441,19 @@ const Platform = () => {
               </p>
             </div>
           </Link>
-          <button
-            onClick={() => setIsDarkMode((p) => !p)}
-            className={`p-2 rounded-full transition-colors shadow-sm border ${isLeftDark
-              ? "hover:bg-slate-800 text-slate-400 border-transparent hover:border-slate-700"
-              : "hover:bg-white text-slate-500 border-transparent hover:border-slate-200"
-              }`}
-            title="Toggle Theme"
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <UserMenu isDark={isLeftDark} />
+            <button
+              onClick={() => setIsDarkMode((p) => !p)}
+              className={`p-2 rounded-full transition-colors shadow-sm border ${isLeftDark
+                ? "hover:bg-slate-800 text-slate-400 border-transparent hover:border-slate-700"
+                : "hover:bg-white text-slate-500 border-transparent hover:border-slate-200"
+                }`}
+              title="Toggle Theme"
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </div>
 
         <div

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Satellite } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 const LandingNavbar = () => {
   const scrollTo = (id: string) => {
@@ -32,13 +33,16 @@ const LandingNavbar = () => {
             </Link>
           </div>
         </div>
-        <Button
-          onClick={() => scrollTo("cta")}
-          size="sm"
-          className="bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300"
-        >
-          Join Waitlist
-        </Button>
+        <div className="flex items-center gap-3">
+          <UserMenu isDark={false} />
+          <Button
+            onClick={() => scrollTo("cta")}
+            size="sm"
+            className="bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300"
+          >
+            Join Waitlist
+          </Button>
+        </div>
       </div>
     </nav>
   );

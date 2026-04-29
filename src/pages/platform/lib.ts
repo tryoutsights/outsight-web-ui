@@ -13,7 +13,13 @@ export type RetrieveParams = {
   maxCloudCover: number;
 };
 
-export type ChatMessage = { role: "bot" | "user"; text: string };
+export type ChatMessage = { 
+  role: "bot" | "user"; 
+  text: string;
+  mapResults?: any[] | null;
+};
+
+export type CopilotCity = { city: string; country: string };
 
 export type CopilotExtraction = {
   updatedCoordinates: Coordinates | null;
@@ -24,6 +30,8 @@ export type CopilotExtraction = {
   updatedDateRange: DateRange | null;
   triggerRun: boolean;
   replyText: string;
+  cities?: CopilotCity[] | null;
+  intent?: string | null;
 };
 
 export interface ImageryData {

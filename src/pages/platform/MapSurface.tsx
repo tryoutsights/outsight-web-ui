@@ -40,19 +40,6 @@ declare global {
   }
 }
 
-export type AgentLayerInput = {
-  /** Stable id used as React/layer key, e.g. "hyderabad-2025". */
-  id: string;
-  /** Display label, e.g. "2025" or "change". */
-  label: string;
-  /** Hex color assigned by the backend. */
-  color: string;
-  /** Inline GeoJSON FeatureCollection (for delivery="inline"). */
-  geojson: GeoJSON.FeatureCollection | null;
-  /** Visibility flag from the year-toggle UI. */
-  visible: boolean;
-};
-
 type MapSurfaceProps = {
   coordinates: Coordinates;
   setCoordinates: React.Dispatch<React.SetStateAction<Coordinates>>;
@@ -66,10 +53,6 @@ type MapSurfaceProps = {
   overlayUrl: string;
   overlayBbox?: number[];
   overlayAreaSize?: number;
-  /** Agent-mode GeoJSON layers (one per year, color-coded). */
-  agentLayers?: AgentLayerInput[];
-  /** When true, fit the map to the union of visible agentLayers' bounds on next change. */
-  fitAgentLayers?: boolean;
 };
 
 const MapSurface = ({
@@ -85,14 +68,11 @@ const MapSurface = ({
   overlayUrl,
   overlayBbox,
   overlayAreaSize,
-  agentLayers,
-  fitAgentLayers,
 }: MapSurfaceProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<unknown>(null);
   const tileLayerRef = useRef<unknown>(null);
   const imageOverlayRef = useRef<unknown>(null);
-  const agentLayerRefs = useRef<Map<string, unknown>>(new Map());
   const hideTimerRef = useRef<number | null>(null);
   const [showSelectionBox, setShowSelectionBox] = useState(true);
 
@@ -212,83 +192,6 @@ const MapSurface = ({
       }
     };
   }, [hasOverlay, overlayUrl, overlayBbox]);
-
-  // Agent-mode GeoJSON layers — one per year, color-coded, toggleable.
-  useEffect(() => {
-    if (!mapInstance.current || !window.L) return;
-    const map = mapInstance.current as {
-      removeLayer: (layer: unknown) => void;
-      fitBounds?: (bounds: unknown, options?: Record<string, unknown>) => void;
-    };
-    const L = window.L;
-
-    // Tear down any layers no longer in the input list.
-    const incomingIds = new Set((agentLayers ?? []).map((l) => l.id));
-    for (const [id, layer] of agentLayerRefs.current.entries()) {
-      if (!incomingIds.has(id)) {
-        map.removeLayer(layer);
-        agentLayerRefs.current.delete(id);
-      }
-    }
-
-    // (Re)create layers that should be visible.
-    for (const input of agentLayers ?? []) {
-      // Drop the old layer first; we always re-add to honor color changes.
-      const existing = agentLayerRefs.current.get(input.id);
-      if (existing) {
-        map.removeLayer(existing);
-        agentLayerRefs.current.delete(input.id);
-      }
-      if (!input.visible || !input.geojson) continue;
-
-      const layer = L.geoJSON(input.geojson, {
-        style: () => ({
-          color: input.color,
-          fillColor: input.color,
-          weight: 1,
-          fillOpacity: 0.55,
-          opacity: 0.9,
-        }),
-      });
-      layer.addTo(map);
-      agentLayerRefs.current.set(input.id, layer);
-    }
-
-    // Fit map to combined bounds when requested.
-    if (fitAgentLayers && agentLayerRefs.current.size > 0 && map.fitBounds) {
-      // Compute union of all visible layer bounds.
-      let union: { extend: (b: unknown) => void; isValid: () => boolean } | null = null;
-      for (const layer of agentLayerRefs.current.values()) {
-        const lyr = layer as { getBounds?: () => unknown };
-        const b = lyr.getBounds?.();
-        if (!b) continue;
-        if (!union) {
-          union = b as typeof union;
-        } else {
-          union.extend(b);
-        }
-      }
-      if (union && (union as { isValid: () => boolean }).isValid()) {
-        map.fitBounds(union, { padding: [40, 40] });
-      }
-    }
-  }, [agentLayers, fitAgentLayers]);
-
-  // Cleanup on unmount: remove any remaining agent layers.
-  useEffect(() => {
-    return () => {
-      if (!mapInstance.current) return;
-      const map = mapInstance.current as { removeLayer: (layer: unknown) => void };
-      for (const layer of agentLayerRefs.current.values()) {
-        try {
-          map.removeLayer(layer);
-        } catch {
-          // map already destroyed; ignore
-        }
-      }
-      agentLayerRefs.current.clear();
-    };
-  }, []);
 
   useEffect(() => {
     setShowSelectionBox(true);

@@ -37,7 +37,6 @@ import {
   parseFallbackExtraction,
 } from "./platform/lib";
 import MapSurface from "./platform/MapSurface";
-import type { AgentLayerInput } from "./platform/MapSurface";
 import type {
   ActiveTab,
   ChatMessage,
@@ -47,8 +46,6 @@ import type {
   RetrieveParams,
   SpectralBand,
 } from "./platform/lib";
-import { useAgentRun } from "@/hooks/useAgentRun";
-import AgentInsightPanel, { buildLayerId } from "@/components/AgentInsightPanel";
 
 const Platform = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -80,62 +77,6 @@ const Platform = () => {
     "Provide a concise geospatial change summary and key features."
   );
   const imageCache = useRef<Map<string, string>>(new Map());
-
-  // Agent (precomputed-data) flow — engaged when copilot returns a `cities` field.
-  const agent = useAgentRun();
-  const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean>>(
-    {},
-  );
-  const [fitAgentLayers, setFitAgentLayers] = useState(false);
-
-  // When new map_results arrive, default every layer to visible and fit bounds.
-  useEffect(() => {
-    if (!agent.mapResults) return;
-    const next: Record<string, boolean> = {};
-    for (const city of agent.mapResults) {
-      for (const layer of city.layers) {
-        next[buildLayerId(city.city_slug, layer.label)] = true;
-      }
-    }
-    setLayerVisibility(next);
-    setFitAgentLayers(true);
-  }, [agent.mapResults]);
-
-  // Build the layer list MapSurface consumes (id, color, geojson, visible).
-  const agentLayers: AgentLayerInput[] = useMemo(() => {
-    if (!agent.mapResults) return [];
-    const out: AgentLayerInput[] = [];
-    for (const city of agent.mapResults) {
-      for (const layer of city.layers) {
-        const id = buildLayerId(city.city_slug, layer.label);
-        out.push({
-          id,
-          label: layer.label,
-          color: layer.color,
-          geojson: layer.geojson,
-          visible: layerVisibility[id] ?? true,
-        });
-      }
-    }
-    return out;
-  }, [agent.mapResults, layerVisibility]);
-
-  useEffect(() => {
-    if (agent.status === "done" && (agent.insight || (agent.mapResults && agent.mapResults.length > 0))) {
-      setMessages((prev) => {
-        const alreadyHasIt = prev.some(m => m.text === agent.insight && m.mapResults === agent.mapResults);
-        if (alreadyHasIt) return prev;
-        return [
-          ...prev,
-          {
-            role: "bot",
-            text: agent.insight || "Spatial analysis completed.",
-            mapResults: agent.mapResults,
-          },
-        ];
-      });
-    }
-  }, [agent.status, agent.insight, agent.mapResults]);
 
   const { width: leftPanelWidth, startResize } = useResizablePanel({
     initialWidth: LEFT_PANEL_DEFAULT_WIDTH,
@@ -434,31 +375,6 @@ const Platform = () => {
 
         if (response.ok) {
           const parsed = (await response.json()) as CopilotExtraction;
-
-          // Route to agent (precomputed-data flow) when the copilot identified cities and intent is NOT imagery.
-          if (parsed.intent === "urban_expansion" && parsed.cities && parsed.cities.length > 0) {
-            const dr = parsed.updatedDateRange ?? dateRange;
-            const startYear = parseInt(dr.startDate.slice(0, 4), 10);
-            const endYear = parseInt(dr.endDate.slice(0, 4), 10);
-            const yearsLabel =
-              startYear === endYear ? `${startYear}` : `${startYear}–${endYear}`;
-            setLatestThinkingMessage(
-              `Querying ${parsed.cities
-                .map((c) => `${c.city} (${c.country.toUpperCase()})`)
-                .join(", ")} for ${yearsLabel}…`,
-            );
-            void agent.run({
-              cities: parsed.cities.map((c) => ({
-                city: c.city,
-                country: c.country,
-                date_range: { startDate: dr.startDate, endDate: dr.endDate },
-                geometry: null,
-              })),
-              intent_type: parsed.intent ?? "urban_expansion",
-            });
-            return;
-          }
-
           setLatestThinkingMessage(applyExtraction(parsed));
           return;
         }
@@ -624,65 +540,11 @@ const Platform = () => {
                           {COPILOT_THINKING_TEXT}
                         </span>
                       ) : (
-                        <div className="flex flex-col gap-2">
-                          <div>{msg.text}</div>
-                          {msg.mapResults && msg.mapResults.length > 0 && (
-                            <div className={`mt-2 space-y-3 pt-2 border-t ${isLeftDark ? "border-slate-800" : "border-slate-200"}`}>
-                              {msg.mapResults.map((city) => (
-                                <div key={`${city.country}-${city.city_slug}`}>
-                                  <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
-                                    {city.city_slug} ({city.country.toUpperCase()})
-                                  </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {city.layers.map((layer) => {
-                                      const id = buildLayerId(city.city_slug, layer.label);
-                                      const visible = layerVisibility[id] ?? true;
-                                      return (
-                                        <button
-                                          key={id}
-                                          onClick={() => {
-                                            setFitAgentLayers(false);
-                                            setLayerVisibility((prev) => ({ ...prev, [id]: !visible }));
-                                          }}
-                                          className={`px-2 py-1 rounded text-[10px] border transition-opacity ${visible ? "opacity-100" : "opacity-40"} ${isLeftDark ? "border-slate-600 hover:border-teal-400" : "border-slate-300 hover:border-teal-600"}`}
-                                          style={{ background: visible ? layer.color : "transparent", color: visible ? "#fff" : isLeftDark ? "#e2e8f0" : "#334155" }}
-                                          title={`${layer.polygon_count} polygons`}
-                                        >
-                                          {layer.label}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        <div>{msg.text}</div>
                       )}
                     </div>
                   </div>
                 ))}
-                {agent.status === "streaming" && agent.currentAction && (
-                  <div className="flex gap-3 flex-row">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br from-teal-500 to-emerald-600 text-white">
-                      <Bot size={14} />
-                    </div>
-                    <div className={`flex items-center gap-2 p-3 rounded-2xl text-sm max-w-[85%] shadow-sm ${isLeftDark ? "bg-slate-900 text-teal-300 border border-slate-800 rounded-tl-none" : "bg-white text-teal-700 border border-slate-100 rounded-tl-none"}`}>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>{agent.currentAction}</span>
-                    </div>
-                  </div>
-                )}
-                {agent.status === "error" && agent.error && (
-                  <div className="flex gap-3 flex-row">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br from-red-500 to-rose-600 text-white">
-                      <Bot size={14} />
-                    </div>
-                    <div className={`p-3 rounded-2xl text-sm max-w-[85%] shadow-sm ${isLeftDark ? "bg-slate-900 text-red-400 border border-slate-800 rounded-tl-none" : "bg-white text-red-600 border border-slate-100 rounded-tl-none"}`}>
-                      {agent.error}
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div
@@ -911,8 +773,6 @@ const Platform = () => {
           overlayUrl={activeImageUrl}
           overlayBbox={selectedItem?.render_payload?.bbox}
           overlayAreaSize={params?.areaSize}
-          agentLayers={agentLayers}
-          fitAgentLayers={fitAgentLayers}
         />
 
         {hasOverlay && (

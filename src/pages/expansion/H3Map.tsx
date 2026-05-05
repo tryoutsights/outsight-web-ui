@@ -9,7 +9,7 @@ import type { MapRef } from "react-map-gl/maplibre";
 import { makeColorScale } from "./lib";
 import type { H3Cell, BBox } from "./lib";
 
-const CARTO_DARK = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const CARTO_VOYAGER = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
 const INITIAL_VIEW = {
   longitude: 77.1,
@@ -89,11 +89,11 @@ export default function H3Map({ cells, selectedYear, bbox, onBboxDrawn, drawMode
     const previewBbox: [number, number, number, number] | null =
       dragStart && dragCurrent
         ? [
-            Math.min(dragStart[1], dragCurrent[1]),
-            Math.min(dragStart[0], dragCurrent[0]),
-            Math.max(dragStart[1], dragCurrent[1]),
-            Math.max(dragStart[0], dragCurrent[0]),
-          ]
+          Math.min(dragStart[1], dragCurrent[1]),
+          Math.min(dragStart[0], dragCurrent[0]),
+          Math.max(dragStart[1], dragCurrent[1]),
+          Math.max(dragStart[0], dragCurrent[0]),
+        ]
         : null;
 
     const displayBbox = previewBbox ?? bbox;
@@ -199,7 +199,7 @@ export default function H3Map({ cells, selectedYear, bbox, onBboxDrawn, drawMode
         getTooltip={getTooltip}
         style={{ position: "absolute", inset: 0 }}
       >
-        <Map ref={mapRef} mapStyle={CARTO_DARK} reuseMaps />
+        <Map ref={mapRef} mapStyle={CARTO_VOYAGER} reuseMaps />
       </DeckGL>
 
       {drawMode && dragStart && dragCurrent && (

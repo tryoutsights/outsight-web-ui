@@ -48,6 +48,20 @@ The repository requires Node.js (v20+ recommended).
    ```
    *The UI will normally launch on `http://localhost:8080`. Note that it expects the Outsights FastAPI backend to be running concurrently on port `8000` for the `api/imagery` and `api/render` endpoints.*
 
+## 📦 Production Build
+
+To produce an optimized production bundle:
+
+```sh
+npm run build
+```
+
+The compiled assets are emitted to `dist/` and can be previewed locally with `npm run preview`.
+
+## 🚀 Deployment
+
+The application is deployed to Vercel from the `main` branch using the configuration in `vercel.json`. Pushes to `main` trigger a fresh build and rollout automatically.
+
 ## 📸 Interface Preview
 
 The control panel features isolated Date Inputs with native calendar popovers, coordinate management, and the `Sector Size` and `Max Cloud` filters feeding into the primary Canvas.

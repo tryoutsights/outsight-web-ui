@@ -77,6 +77,14 @@ const Landing = () => {
                 >
                   <Link to="/platform">View Demo Image</Link>
                 </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="border-border/50 hover:border-orange-500/50 hover:text-orange-400 transition-all duration-300"
+                >
+                  <Link to="/expansion">Urban Expansion</Link>
+                </Button>
               </div>
             </div>
 

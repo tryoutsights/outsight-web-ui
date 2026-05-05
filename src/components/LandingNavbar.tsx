@@ -31,6 +31,12 @@ const LandingNavbar = () => {
             >
               Platform Demo
             </Link>
+            <Link
+              to="/expansion"
+              className="text-sm text-muted-foreground hover:text-orange-400 transition-colors"
+            >
+              Urban Expansion
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-3">

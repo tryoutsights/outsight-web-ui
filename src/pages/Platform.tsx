@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
 import { Link } from "react-router-dom";
@@ -8,7 +8,11 @@ import {
   Bot,
   CloudRain,
   Crosshair,
+  Eye,
+  EyeOff,
   FileText,
+  Hexagon,
+  Layers,
   Loader2,
   Maximize,
   Moon,
@@ -19,7 +23,20 @@ import {
   Satellite,
   Sun,
   User,
+  X,
 } from "lucide-react";
+import YearSlider from "./expansion/YearSlider";
+import StatsPanel from "./expansion/StatsPanel";
+import Legend from "./expansion/Legend";
+import {
+  fetchDatasets,
+  queryMap,
+  queryAnalytics,
+} from "./expansion/lib";
+import type { AnalyticsResult, Dataset, BBox } from "./expansion/lib";
+import UnifiedMap from "./platform/UnifiedMap";
+import { useLayerManager } from "./platform/layers";
+import type { LayerDef } from "./platform/layers";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/hooks/use-auth";
 import { useResizablePanel } from "@/hooks/use-resizable-panel";
@@ -33,10 +50,10 @@ import {
   DEFAULT_COPILOT_REPLY,
   clamp,
   fetchImagery,
+  hasValidBbox,
   nearestAreaOption,
   parseFallbackExtraction,
 } from "./platform/lib";
-import MapSurface from "./platform/MapSurface";
 import type {
   ActiveTab,
   ChatMessage,
@@ -78,6 +95,29 @@ const Platform = () => {
   );
   const imageCache = useRef<Map<string, string>>(new Map());
 
+  // ---------------------------------------------------------------------------
+  // Mode toggle: "imagery" | "expansion"
+  // ---------------------------------------------------------------------------
+  const [mode, setMode] = useState<"imagery" | "expansion">("imagery");
+
+  // Layer manager (imagery + expansion layers rendered on unified map)
+  const { layers: mapLayers, addLayer, removeLayer, toggleLayer, updateLayer } = useLayerManager();
+
+  // Expansion state
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [selectedSlug, setSelectedSlug] = useState<string>("");
+  const [drawMode, setDrawMode] = useState(false);
+  const [expBbox, setExpBbox] = useState<[number, number, number, number] | null>(null);
+  const [expAnalytics, setExpAnalytics] = useState<AnalyticsResult | null>(null);
+  const [expLoading, setExpLoading] = useState(false);
+  const [expError, setExpError] = useState<string | null>(null);
+  const [datasetsLoading, setDatasetsLoading] = useState(false);
+  const [datasetsError, setDatasetsError] = useState<string | null>(null);
+
+  const expLayer = mapLayers.find((l) => l.id === "expansion-current");
+  const expSelectedYear = expLayer?.kind === "expansion" ? expLayer.years[expLayer.selectedYearIdx] : undefined;
+  const cells = expLayer?.kind === "expansion" ? expLayer.cells : [];
+
   const { width: leftPanelWidth, startResize } = useResizablePanel({
     initialWidth: LEFT_PANEL_DEFAULT_WIDTH,
     minWidth: LEFT_PANEL_MIN_WIDTH,
@@ -85,6 +125,62 @@ const Platform = () => {
   });
   const { requestSignIn } = useAuth();
 
+
+  // Load datasets the first time expansion mode is activated
+  useEffect(() => {
+    if (mode !== "expansion" || datasets.length > 0) return;
+    setDatasetsLoading(true);
+    fetchDatasets()
+      .then((ds) => {
+        setDatasets(ds);
+        if (ds.length > 0) setSelectedSlug(ds[0].slug);
+      })
+      .catch((e: Error) => setDatasetsError(e.message))
+      .finally(() => setDatasetsLoading(false));
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const runExpansionQuery = useCallback(async (newBbox: BBox) => {
+    if (!selectedSlug) { setExpError("Select a dataset first."); return; }
+    setExpError(null);
+    setExpLoading(true);
+    const bboxTuple: [number, number, number, number] = [newBbox.minLat, newBbox.minLon, newBbox.maxLat, newBbox.maxLon];
+    setExpBbox(bboxTuple);
+    try {
+      const [mapResult, analyticsResult] = await Promise.all([
+        queryMap(selectedSlug, newBbox),
+        queryAnalytics(selectedSlug, newBbox),
+      ]);
+      if (mapResult.status === "empty") {
+        setExpError("No data in this region. Check the dataset AOI.");
+        return;
+      }
+      const years = mapResult.years ?? [];
+      setExpAnalytics(analyticsResult);
+      const displayName = datasets.find((d) => d.slug === selectedSlug)?.display_name ?? selectedSlug;
+      addLayer({
+        kind: "expansion",
+        id: "expansion-current",
+        label: `${displayName} — H3 r10`,
+        visible: true,
+        cells: mapResult.cells ?? [],
+        years,
+        selectedYearIdx: years.length ? years.length - 1 : 0,
+        bbox: bboxTuple,
+      } satisfies LayerDef);
+    } catch (e) {
+      setExpError((e as Error).message);
+    } finally {
+      setExpLoading(false);
+      setDrawMode(false);
+    }
+  }, [selectedSlug, datasets, addLayer]);
+
+  const handleExpansionClear = () => {
+    setExpAnalytics(null);
+    setExpBbox(null);
+    setExpError(null);
+    removeLayer("expansion-current");
+  };
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["imagery", params],
@@ -109,6 +205,28 @@ const Platform = () => {
       }
     };
   }, []);
+
+  // Wire rendered imagery URL → imagery layer in the layer manager
+  const selectedItem = useMemo(() => {
+    if (!data || data.length === 0) return null;
+    return data[Math.min(activeIndex, data.length - 1)];
+  }, [activeIndex, data]);
+
+  useEffect(() => {
+    if (!activeImageUrl || !selectedItem) return;
+    const rawBbox = selectedItem.render_payload?.bbox;
+    if (!hasValidBbox(rawBbox)) return;
+    addLayer({
+      kind: "imagery",
+      id: "imagery-current",
+      label: `${band} — ${selectedItem.capture_date?.slice(0, 10) ?? ""}`,
+      visible: true,
+      url: activeImageUrl,
+      bbox: rawBbox as [number, number, number, number],
+      opacity: 0.72,
+      band,
+    });
+  }, [activeImageUrl, selectedItem]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRetrieve = (overrides?: Partial<RetrieveParams>) => {
     const next = {
@@ -215,10 +333,7 @@ const Platform = () => {
 
   const hasOverlay = !!data && data.length > 0 && !!activeImageUrl && !isLoading && !isError;
 
-  const selectedItem = useMemo(() => {
-    if (!data || data.length === 0) return null;
-    return data[Math.min(activeIndex, data.length - 1)];
-  }, [activeIndex, data]);
+
 
   const handleGenerateInsights = async () => {
     if (!selectedItem?.render_payload) {
@@ -285,6 +400,16 @@ const Platform = () => {
 
     const applyExtraction = (parsed: CopilotExtraction): string => {
       const updates: string[] = [];
+
+      // Mode switch from copilot intent
+      if (parsed.intent === "expansion") {
+        setMode("expansion");
+        setActiveTab("controls");
+        updates.push("switched to Urban Expansion mode");
+      } else if (parsed.intent === "imagery") {
+        setMode("imagery");
+        updates.push("switched to Imagery mode");
+      }
       const nextLat =
         parsed.updatedCoordinates && Number.isFinite(parsed.updatedCoordinates.lat)
           ? clamp(parsed.updatedCoordinates.lat, -90, 90)
@@ -337,7 +462,7 @@ const Platform = () => {
         updates.push(`date range -> ${nextStartDate} to ${nextEndDate}`);
       }
 
-      if (parsed.triggerRun) {
+      if (parsed.triggerRun && parsed.intent !== "expansion") {
         handleRetrieve({
           lat: nextLat,
           lon: nextLng,
@@ -370,6 +495,7 @@ const Platform = () => {
             current_band: band,
             current_zoom: zoom,
             current_date_range: dateRange,
+            current_mode: mode,
           }),
         });
 
@@ -501,6 +627,19 @@ const Platform = () => {
           >
             <FileText size={16} /> Insights
           </button>
+          <button
+            onClick={() => setActiveTab("layers")}
+            className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "layers"
+              ? isLeftDark
+                ? "text-teal-400 border-b-2 border-teal-500 bg-slate-800/50"
+                : "text-teal-600 border-b-2 border-teal-600 bg-teal-50"
+              : isLeftDark
+                ? "text-slate-400 hover:text-slate-300"
+                : "text-slate-500 hover:text-slate-700"
+              }`}
+          >
+            <Layers size={16} /> Layers
+          </button>
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -579,11 +718,116 @@ const Platform = () => {
             </div>
           )}
 
-          {activeTab === "controls" && (
+          {activeTab === "controls" && mode === "expansion" && (
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4 bg-[#161b22] text-slate-200">
+              {/* Mode toggle */}
+              <div className="flex rounded-lg overflow-hidden border border-[#30363d]">
+                <button
+                  onClick={() => setMode("imagery")}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  <Satellite size={12} /> Imagery
+                </button>
+                <button
+                  onClick={() => setMode("expansion")}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-orange-600 text-white"
+                >
+                  <Hexagon size={12} /> Expansion
+                </button>
+              </div>
+
+              {/* Dataset selector */}
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2">Dataset</div>
+                {datasetsLoading ? (
+                  <div className="flex items-center gap-2 text-slate-500 text-xs"><Loader2 size={12} className="animate-spin" /> Loading…</div>
+                ) : datasetsError ? (
+                  <div className="text-xs text-red-400">{datasetsError}</div>
+                ) : datasets.length === 0 ? (
+                  <div className="text-xs text-slate-500">No datasets found</div>
+                ) : (
+                  <select
+                    value={selectedSlug}
+                    onChange={(e) => { setSelectedSlug(e.target.value); handleExpansionClear(); }}
+                    className="w-full bg-[#0d1117] border border-[#30363d] text-slate-300 text-xs rounded px-2 py-1.5 focus:outline-none focus:border-teal-500"
+                  >
+                    {datasets.map((d) => (
+                      <option key={d.slug} value={d.slug}>{d.display_name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Draw / Clear */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDrawMode((m) => !m)}
+                  disabled={!selectedSlug || datasetsLoading}
+                  className={`flex-1 px-3 py-1.5 rounded text-xs font-semibold border transition-colors disabled:opacity-40 ${
+                    drawMode
+                      ? "bg-blue-900/50 border-blue-500 text-blue-300"
+                      : "bg-[#21262d] border-[#30363d] text-slate-300 hover:border-slate-500"
+                  }`}
+                >
+                  {drawMode ? "Cancel Draw" : "Draw BBOX"}
+                </button>
+                <button
+                  onClick={handleExpansionClear}
+                  disabled={!cells.length && !expBbox}
+                  className="flex-1 px-3 py-1.5 rounded text-xs font-semibold border border-[#30363d] bg-[#21262d] text-slate-300 hover:border-slate-500 disabled:opacity-40 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+
+              {expLoading && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <Loader2 size={12} className="animate-spin" /> Querying…
+                </div>
+              )}
+
+              {drawMode && (
+                <p className="text-xs text-blue-400 leading-relaxed">
+                  Drag on the map to draw a bounding box, then release to query.
+                </p>
+              )}
+
+              {/* Stats */}
+              <div className="h-px bg-[#30363d]" />
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2">Statistics</div>
+                <StatsPanel analytics={expAnalytics} selectedYear={expSelectedYear} loading={expLoading} />
+              </div>
+
+              {mapLayers.some((l) => l.kind === "expansion") && (
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Year slider and color scale are in the <strong className="text-slate-400">Layers</strong> tab.
+                </p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "controls" && mode === "imagery" && (
             <div
               className={`flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6 transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
                 }`}
             >
+              {/* Mode toggle */}
+              <div className={`flex rounded-lg overflow-hidden border ${isLeftDark ? "border-slate-700" : "border-slate-200"}`}>
+                <button
+                  onClick={() => setMode("imagery")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold ${isLeftDark ? "bg-teal-600 text-white" : "bg-teal-600 text-white"}`}
+                >
+                  <Satellite size={12} /> Imagery
+                </button>
+                <button
+                  onClick={() => setMode("expansion")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${isLeftDark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                >
+                  <Hexagon size={12} /> Expansion
+                </button>
+              </div>
+
               <div>
                 <label className={`flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider ${isLeftDark ? "text-slate-400" : "text-slate-600"}`}>
                   <Crosshair size={14} className="text-emerald-500" /> Center Coordinates
@@ -744,6 +988,94 @@ const Platform = () => {
               </div>
             </div>
           )}
+
+          {activeTab === "layers" && (
+            <div
+              className={`flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-3 transition-colors duration-300 ${
+                isLeftDark ? "bg-slate-900" : "bg-slate-50"
+              }`}
+            >
+              {mapLayers.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center h-full gap-3 text-center ${isLeftDark ? "text-slate-500" : "text-slate-400"}`}>
+                  <div className={`p-4 rounded-full ${isLeftDark ? "bg-slate-800/50" : "bg-slate-100"}`}>
+                    <Layers size={28} className="text-teal-400 opacity-70" />
+                  </div>
+                  <p className="text-xs max-w-[200px] leading-relaxed">
+                    No layers yet. Run Spatial Analysis or query Urban Expansion to add layers.
+                  </p>
+                </div>
+              ) : (
+                mapLayers.map((layer) => (
+                  <div
+                    key={layer.id}
+                    className={`rounded-xl border p-3 flex flex-col gap-3 transition-colors ${
+                      isLeftDark ? "border-slate-700 bg-slate-800/60" : "border-slate-200 bg-white"
+                    } ${!layer.visible ? "opacity-50" : ""}`}
+                  >
+                    {/* Row 1: icon + label + toggle + remove */}
+                    <div className="flex items-center gap-2">
+                      {layer.kind === "imagery" ? (
+                        <Satellite size={13} className="text-teal-400 shrink-0" />
+                      ) : (
+                        <Hexagon size={13} className="text-orange-400 shrink-0" />
+                      )}
+                      <span className={`text-xs flex-1 truncate font-medium ${isLeftDark ? "text-slate-200" : "text-slate-700"}`}>
+                        {layer.label}
+                      </span>
+                      <button
+                        onClick={() => toggleLayer(layer.id)}
+                        className={`p-1 rounded transition-colors ${isLeftDark ? "hover:bg-slate-700 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}
+                        title={layer.visible ? "Hide layer" : "Show layer"}
+                      >
+                        {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
+                      </button>
+                      <button
+                        onClick={() => removeLayer(layer.id)}
+                        className={`p-1 rounded transition-colors ${isLeftDark ? "hover:bg-slate-700 text-slate-500 hover:text-red-400" : "hover:bg-slate-100 text-slate-400 hover:text-red-500"}`}
+                        title="Remove layer"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+
+                    {/* Row 2: per-kind controls */}
+                    {layer.kind === "imagery" && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] shrink-0 ${isLeftDark ? "text-slate-500" : "text-slate-400"}`}>Opacity</span>
+                        <input
+                          type="range"
+                          min={0} max={1} step={0.05}
+                          value={layer.opacity}
+                          onChange={(e) => updateLayer(layer.id, { opacity: Number(e.target.value) })}
+                          className="flex-1 accent-teal-500 h-1.5 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span className={`text-[10px] w-7 text-right shrink-0 ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
+                          {Math.round(layer.opacity * 100)}%
+                        </span>
+                      </div>
+                    )}
+
+                    {layer.kind === "expansion" && layer.years.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <YearSlider
+                          years={layer.years}
+                          yearIdx={layer.selectedYearIdx}
+                          onYearIdx={(idx) => updateLayer(layer.id, { selectedYearIdx: typeof idx === "function" ? idx(layer.selectedYearIdx) : idx })}
+                        />
+                        {(() => {
+                          const yr = layer.years[layer.selectedYearIdx] ?? null;
+                          const maxVal = yr
+                            ? layer.cells.reduce((m, c) => Math.max(m, (c[`built_${yr}_km2`] as number) ?? 0), 0)
+                            : 0;
+                          return maxVal > 0 ? <Legend maxValue={maxVal} /> : null;
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -760,21 +1092,25 @@ const Platform = () => {
           isDarkMode ? "bg-[#050505]" : "bg-slate-200"
         }`}
       >
-        <MapSurface
+        {/* ---- Unified map — renders all layers simultaneously ---- */}
+        <UnifiedMap
+          mapLayers={mapLayers}
+          updateLayer={updateLayer}
           coordinates={coordinates}
           setCoordinates={setCoordinates}
           zoom={zoom}
           setZoom={setZoom}
           areaSize={areaSize}
-          hasOverlay={hasOverlay}
           band={band}
           isGenerating={isLoading || isRendering}
           isDarkMode={isDarkMode}
-          overlayUrl={activeImageUrl}
-          overlayBbox={selectedItem?.render_payload?.bbox}
-          overlayAreaSize={params?.areaSize}
+          showSelectionBox={mode === "imagery"}
+          drawMode={drawMode}
+          onBboxDrawn={runExpansionQuery}
+          expBbox={expBbox}
         />
 
+        {/* Band legend overlay (imagery) */}
         {hasOverlay && (
           <div className={`absolute bottom-8 right-8 backdrop-blur-md border p-5 rounded-2xl shadow-2xl z-[1000] transition-colors duration-300 ${isDarkMode ? "bg-[#121216]/95 border-slate-800" : "bg-white/95 border-slate-200"}`}>
             <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>
@@ -783,11 +1119,15 @@ const Platform = () => {
             </h4>
             <div className="flex items-center gap-4">
               <span className="text-xs font-semibold text-slate-500">Low</span>
-              <div
-                className={`h-3 w-32 rounded-full shadow-inner ${band === "NDBI" ? "bg-gradient-to-r from-transparent via-orange-400 to-red-600" : band === "NDVI" ? "bg-gradient-to-r from-transparent via-emerald-400 to-green-700" : isDarkMode ? "bg-gradient-to-r from-slate-800 to-slate-200" : "bg-gradient-to-r from-slate-200 to-slate-600"}`}
-              />
+              <div className={`h-3 w-32 rounded-full shadow-inner ${band === "NDBI" ? "bg-gradient-to-r from-transparent via-orange-400 to-red-600" : band === "NDVI" ? "bg-gradient-to-r from-transparent via-emerald-400 to-green-700" : isDarkMode ? "bg-gradient-to-r from-slate-800 to-slate-200" : "bg-gradient-to-r from-slate-200 to-slate-600"}`} />
               <span className="text-xs font-semibold text-slate-500">High</span>
             </div>
+          </div>
+        )}
+
+        {expError && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 px-4 py-2 rounded border border-red-500 text-xs max-w-sm text-center z-[1000]">
+            {expError}
           </div>
         )}
       </div>

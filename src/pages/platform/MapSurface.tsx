@@ -1,44 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  LEAFLET_CSS_URL,
-  LEAFLET_JS_URL,
-  LIGHT_TILE_URL,
-  hasValidBbox,
-} from "./lib";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import DeckGL from "@deck.gl/react";
+import { BitmapLayer } from "@deck.gl/layers";
+import { WebMercatorViewport } from "@deck.gl/core";
+import { Map } from "react-map-gl/maplibre";
+import { hasValidBbox } from "./lib";
 import type { Coordinates, SpectralBand } from "./lib";
 
-declare global {
-  interface Window {
-    L?: {
-      map: (el: HTMLElement, options: Record<string, unknown>) => {
-        on: (event: string, cb: () => void) => void;
-        getCenter: () => { lat: number; lng: number };
-        getZoom: () => number;
-        setView: (center: [number, number], zoom: number) => void;
-        setZoom: (zoom: number) => void;
-        invalidateSize: () => void;
-        remove: () => void;
-        fitBounds?: (bounds: unknown, options?: Record<string, unknown>) => void;
-      };
-      tileLayer: (
-        url: string,
-        options: Record<string, unknown>
-      ) => { addTo: (map: unknown) => { setUrl: (url: string) => void } };
-      imageOverlay: (
-        url: string,
-        bounds: [[number, number], [number, number]],
-        options?: Record<string, unknown>
-      ) => { addTo: (map: unknown) => unknown };
-      geoJSON: (
-        data: unknown,
-        options?: Record<string, unknown>
-      ) => {
-        addTo: (map: unknown) => unknown;
-        getBounds?: () => unknown;
-      };
-    };
-  }
-}
+const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const LIGHT_STYLE = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+
+type ViewState = {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+  pitch: number;
+  bearing: number;
+};
 
 type MapSurfaceProps = {
   coordinates: Coordinates;
@@ -69,181 +46,103 @@ const MapSurface = ({
   overlayBbox,
   overlayAreaSize,
 }: MapSurfaceProps) => {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstance = useRef<unknown>(null);
-  const tileLayerRef = useRef<unknown>(null);
-  const imageOverlayRef = useRef<unknown>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isUserPanning = useRef(false);
+
+  const [viewState, setViewState] = useState<ViewState>({
+    longitude: coordinates.lng,
+    latitude: coordinates.lat,
+    zoom,
+    pitch: 0,
+    bearing: 0,
+  });
+
   const hideTimerRef = useRef<number | null>(null);
   const [showSelectionBox, setShowSelectionBox] = useState(true);
 
+  // Sync external prop changes into the controlled viewState (e.g. copilot flying to a new location)
   useEffect(() => {
-    const initMap = () => {
-      if (mapInstance.current || !window.L || !mapRef.current) return;
-      const L = window.L;
-      if (!L) return;
-
-      const map = L.map(mapRef.current, {
-        center: [coordinates.lat, coordinates.lng],
-        zoom,
-        zoomControl: false,
-        attributionControl: false,
-      });
-      const initialUrl = LIGHT_TILE_URL;
-      tileLayerRef.current = L.tileLayer(initialUrl, {
-        maxZoom: 19,
-        subdomains: "abcd",
-      }).addTo(map);
-
-      map.on("moveend", () => {
-        const center = map.getCenter();
-        setCoordinates({ lat: center.lat, lng: center.lng });
-      });
-      map.on("zoomend", () => setZoom(map.getZoom()));
-      mapInstance.current = map;
-      setTimeout(() => map.invalidateSize(), 100);
-    };
-
-    if (!document.getElementById("leaflet-css")) {
-      const css = document.createElement("link");
-      css.id = "leaflet-css";
-      css.rel = "stylesheet";
-      css.href = LEAFLET_CSS_URL;
-      document.head.appendChild(css);
+    if (isUserPanning.current) {
+      isUserPanning.current = false;
+      return;
     }
-
-    const scriptId = "leaflet-js";
-    const script = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (!script) {
-      const next = document.createElement("script");
-      next.id = scriptId;
-      next.src = LEAFLET_JS_URL;
-      next.onload = initMap;
-      document.head.appendChild(next);
-    } else if (window.L) {
-      initMap();
-    } else {
-      script.addEventListener("load", initMap);
-    }
-
-    return () => {
-      if (mapInstance.current) {
-        const map = mapInstance.current as { remove: () => void };
-        map.remove();
-        mapInstance.current = null;
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!tileLayerRef.current) return;
-    const tileLayer = tileLayerRef.current as { setUrl: (url: string) => void };
-    tileLayer.setUrl(LIGHT_TILE_URL);
-  }, []);
-
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    const map = mapInstance.current as {
-      getCenter: () => { lat: number; lng: number };
-      setView: (center: [number, number], zoom: number) => void;
-    };
-    const center = map.getCenter();
-    if (
-      Math.abs(center.lat - coordinates.lat) > 0.0001 ||
-      Math.abs(center.lng - coordinates.lng) > 0.0001
-    ) {
-      map.setView([coordinates.lat, coordinates.lng], zoom);
-    }
+    setViewState((v) => ({
+      ...v,
+      longitude: coordinates.lng,
+      latitude: coordinates.lat,
+      zoom,
+    }));
   }, [coordinates.lat, coordinates.lng, zoom]);
 
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    const map = mapInstance.current as { getZoom: () => number; setZoom: (zoom: number) => void };
-    if (map.getZoom() !== zoom) {
-      map.setZoom(zoom);
-    }
-  }, [zoom]);
-
-  useEffect(() => {
-    if (!mapInstance.current || !window.L) return;
-    const map = mapInstance.current as {
-      removeLayer: (layer: unknown) => void;
-    };
-    const L = window.L;
-
-    if (imageOverlayRef.current) {
-      map.removeLayer(imageOverlayRef.current);
-      imageOverlayRef.current = null;
-    }
-
-    if (!hasOverlay || !overlayUrl || !hasValidBbox(overlayBbox)) return;
-
-    const [minLon, minLat, maxLon, maxLat] = overlayBbox;
-    const southWest: [number, number] = [minLat, minLon];
-    const northEast: [number, number] = [maxLat, maxLon];
-    imageOverlayRef.current = L.imageOverlay(overlayUrl, [southWest, northEast], {
-      opacity: 0.72,
-      interactive: false,
-    }).addTo(map);
-
-    return () => {
-      if (imageOverlayRef.current) {
-        map.removeLayer(imageOverlayRef.current);
-        imageOverlayRef.current = null;
-      }
-    };
-  }, [hasOverlay, overlayUrl, overlayBbox]);
-
+  // Selection-box fade timer — reset whenever the user changes anything
   useEffect(() => {
     setShowSelectionBox(true);
-    if (hideTimerRef.current) {
-      window.clearTimeout(hideTimerRef.current);
-    }
-
+    if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
     hideTimerRef.current = window.setTimeout(() => {
       setShowSelectionBox(false);
       hideTimerRef.current = null;
     }, 3000);
-
     return () => {
       if (hideTimerRef.current) {
         window.clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
     };
-  }, [
-    coordinates.lat,
-    coordinates.lng,
-    zoom,
-    areaSize,
-    isGenerating,
-    hasOverlay,
-    overlayUrl,
-    overlayBbox,
-    band,
-  ]);
+  }, [coordinates.lat, coordinates.lng, zoom, areaSize, isGenerating, hasOverlay, overlayUrl, overlayBbox, band]);
 
+  const handleViewStateChange = useCallback(
+    ({ viewState: next }: { viewState: ViewState }) => {
+      setViewState(next);
+      isUserPanning.current = true;
+      setCoordinates({ lat: next.latitude, lng: next.longitude });
+      setZoom(next.zoom);
+    },
+    [setCoordinates, setZoom]
+  );
+
+  // BitmapLayer for satellite imagery overlay
+  const layers = [];
+  if (hasOverlay && overlayUrl && hasValidBbox(overlayBbox)) {
+    const [minLon, minLat, maxLon, maxLat] = overlayBbox;
+    layers.push(
+      new BitmapLayer({
+        id: "imagery-overlay",
+        image: overlayUrl,
+        bounds: [minLon, minLat, maxLon, maxLat] as [number, number, number, number],
+        opacity: 0.72,
+      })
+    );
+  }
+
+  // Selection box pixel size
+  const containerWidth = containerRef.current?.offsetWidth ?? 800;
+  const containerHeight = containerRef.current?.offsetHeight ?? 600;
   const metersPerPixel =
-    (156543.03392 * Math.cos((coordinates.lat * Math.PI) / 180)) / Math.pow(2, zoom);
+    (156543.03392 * Math.cos((viewState.latitude * Math.PI) / 180)) / Math.pow(2, viewState.zoom);
   const sideLengthMeters = Math.sqrt(areaSize) * 1000;
   let boxWidthPixels = sideLengthMeters / metersPerPixel;
   let boxHeightPixels = sideLengthMeters / metersPerPixel;
-  const canUseOverlayBboxForBox = hasValidBbox(overlayBbox) && overlayAreaSize === areaSize;
 
+  const canUseOverlayBboxForBox = hasValidBbox(overlayBbox) && overlayAreaSize === areaSize;
   if (canUseOverlayBboxForBox) {
     const [minLon, minLat, maxLon, maxLat] = overlayBbox;
-    const map = mapInstance.current as {
-      latLngToContainerPoint?: (latLng: [number, number]) => { x: number; y: number };
-    } | null;
-
-    if (map?.latLngToContainerPoint) {
-      const southWestPx = map.latLngToContainerPoint([minLat, minLon]);
-      const northEastPx = map.latLngToContainerPoint([maxLat, maxLon]);
-      boxWidthPixels = Math.abs(northEastPx.x - southWestPx.x);
-      boxHeightPixels = Math.abs(northEastPx.y - southWestPx.y);
-    } else {
+    try {
+      const viewport = new WebMercatorViewport({
+        width: containerWidth,
+        height: containerHeight,
+        longitude: viewState.longitude,
+        latitude: viewState.latitude,
+        zoom: viewState.zoom,
+      });
+      const sw = viewport.project([minLon, minLat]);
+      const ne = viewport.project([maxLon, maxLat]);
+      boxWidthPixels = Math.abs(ne[0] - sw[0]);
+      boxHeightPixels = Math.abs(ne[1] - sw[1]);
+    } catch {
       const centerLat = (minLat + maxLat) / 2;
       const latMeters = Math.abs(maxLat - minLat) * 111320;
-      const lonMeters = Math.abs(maxLon - minLon) * 111320 * Math.cos((centerLat * Math.PI) / 180);
+      const lonMeters =
+        Math.abs(maxLon - minLon) * 111320 * Math.cos((centerLat * Math.PI) / 180);
       boxWidthPixels = lonMeters / metersPerPixel;
       boxHeightPixels = latMeters / metersPerPixel;
     }
@@ -253,13 +152,18 @@ const MapSurface = ({
   boxHeightPixels = Math.max(boxHeightPixels, 20);
 
   return (
-    <div className="absolute inset-0">
-      <div
-        className={`absolute inset-0 z-0 ${isDarkMode ? "bg-[#050505]" : "bg-slate-200"} transition-colors duration-300`}
+    <div ref={containerRef} className="absolute inset-0">
+      <DeckGL
+        viewState={viewState}
+        onViewStateChange={handleViewStateChange as Parameters<typeof DeckGL>[0]["onViewStateChange"]}
+        controller
+        layers={layers}
+        style={{ position: "absolute", inset: 0 }}
       >
-        <div ref={mapRef} className="absolute inset-0" />
-      </div>
+        <Map reuseMaps mapStyle={isDarkMode ? DARK_STYLE : LIGHT_STYLE} />
+      </DeckGL>
 
+      {/* Selection box + crosshair overlay */}
       <div
         className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center z-[400] transition-opacity duration-500 ${
           showSelectionBox ? "opacity-100" : "opacity-0"
@@ -293,14 +197,11 @@ const MapSurface = ({
             />
           )}
         </div>
+
         <div className="absolute flex items-center justify-center">
+          <div className={`w-8 h-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} shadow-sm`} />
           <div
-            className={`w-8 h-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} shadow-sm`}
-          />
-          <div
-            className={`h-8 w-[2px] ${
-              isDarkMode ? "bg-teal-400" : "bg-teal-600"
-            } absolute shadow-sm`}
+            className={`h-8 w-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} absolute shadow-sm`}
           />
           <div className="w-1.5 h-1.5 bg-white rounded-full z-10 shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
         </div>

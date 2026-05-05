@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api-client";
 
-export type ActiveTab = "chat" | "controls" | "insights";
+export type ActiveTab = "chat" | "controls" | "insights" | "layers";
 export type SpectralBand = "NDBI" | "NDVI" | "TrueColor";
 export type DateRange = { startDate: string; endDate: string };
 
@@ -27,6 +27,7 @@ export type CopilotExtraction = {
   updatedDateRange: DateRange | null;
   triggerRun: boolean;
   replyText: string;
+  intent?: "imagery" | "expansion" | null;
 };
 
 export interface ImageryData {
@@ -46,11 +47,6 @@ export type Coordinates = { lat: number; lng: number };
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 export const AREA_SIZE_OPTIONS = [1, 4, 25, 100] as const;
 
-export const DARK_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-export const LIGHT_TILE_URL =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-export const LEAFLET_CSS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-export const LEAFLET_JS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 
 export const LEFT_PANEL_DEFAULT_WIDTH = 420;
 export const LEFT_PANEL_MIN_WIDTH = 320;
@@ -98,6 +94,11 @@ export const parseFallbackExtraction = (
     /(?:from|start)\s*(\d{4}-\d{2}-\d{2}).*?(?:to|end)\s*(\d{4}-\d{2}-\d{2})/
   );
 
+  const isExpansionIntent =
+    /(urban.?expan|built.?up|city.?growth|urban.?sprawl|h3.?hex|expansion.?mode|growth.?pattern|development.?pattern)/i.test(lower);
+  const isImageryIntent =
+    /(imagery.?mode|satellite.?mode|switch.?to.?imagery|back.?to.?imagery|raster)/i.test(lower);
+
   const extraction: CopilotExtraction = {
     updatedCoordinates: null,
     updatedCloudCover: cloudClause ? clamp(Number(cloudClause[1]), 0, 100) : null,
@@ -123,6 +124,7 @@ export const parseFallbackExtraction = (
       : null,
     triggerRun: /(run|execute|retrieve|fetch|analy[sz]e|go)\b/.test(lower),
     replyText: "",
+    intent: isExpansionIntent ? "expansion" : isImageryIntent ? "imagery" : null,
   };
 
   if (latLonPair) {

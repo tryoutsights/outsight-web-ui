@@ -2,25 +2,22 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { BitmapLayer, PolygonLayer } from "@deck.gl/layers";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
+import type { MapViewState } from "@deck.gl/core";
 import { Map } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { MapRef } from "react-map-gl/maplibre";
 import { makeColorScale } from "../expansion/lib";
 import type { BBox, H3Cell } from "../expansion/lib";
+import {
+  BASEMAP_STYLES,
+  BBOX_MIN_DELTA_DEG,
+  SELECTION_BOX_FADE_MS,
+} from "./constants";
 import { hasValidBbox } from "./lib";
 import type { Coordinates, SpectralBand } from "./lib";
-import type { LayerDef } from "./layers";
+import type { LayerDef, LayerKind, LayerPatch } from "./layers";
 
-const DARK_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-const LIGHT_STYLE = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
-
-type ViewState = {
-  longitude: number;
-  latitude: number;
-  zoom: number;
-  pitch: number;
-  bearing: number;
-};
+type ViewState = MapViewState;
 
 function bboxPolygon([minLat, minLon, maxLat, maxLon]: [number, number, number, number]) {
   return [
@@ -34,7 +31,7 @@ function bboxPolygon([minLat, minLon, maxLat, maxLon]: [number, number, number, 
 
 type UnifiedMapProps = {
   mapLayers: LayerDef[];
-  updateLayer: (id: string, update: Partial<Omit<LayerDef, "kind" | "id">>) => void;
+  updateLayer: <K extends LayerKind>(id: string, kind: K, update: LayerPatch<K>) => void;
   // View control (from imagery tool / copilot)
   coordinates: Coordinates;
   setCoordinates: React.Dispatch<React.SetStateAction<Coordinates>>;
@@ -101,7 +98,7 @@ export default function UnifiedMap({
     hideTimerRef.current = window.setTimeout(() => {
       setSelBoxVisible(false);
       hideTimerRef.current = null;
-    }, 3000);
+    }, SELECTION_BOX_FADE_MS);
     return () => {
       if (hideTimerRef.current) { window.clearTimeout(hideTimerRef.current); hideTimerRef.current = null; }
     };
@@ -146,7 +143,10 @@ export default function UnifiedMap({
       const [lng2, lat2] = ll;
       const minLat = Math.min(lat1, lat2), maxLat = Math.max(lat1, lat2);
       const minLon = Math.min(lng1, lng2), maxLon = Math.max(lng1, lng2);
-      if (Math.abs(maxLat - minLat) > 0.001 && Math.abs(maxLon - minLon) > 0.001) {
+      if (
+        Math.abs(maxLat - minLat) > BBOX_MIN_DELTA_DEG &&
+        Math.abs(maxLon - minLon) > BBOX_MIN_DELTA_DEG
+      ) {
         onBboxDrawn({ minLat, minLon, maxLat, maxLon });
       }
     }
@@ -246,9 +246,19 @@ export default function UnifiedMap({
         onViewStateChange={handleViewStateChange as Parameters<typeof DeckGL>[0]["onViewStateChange"]}
         controller={drawMode ? false : { dragPan: true, scrollZoom: true, doubleClickZoom: true }}
         layers={deckLayers as Parameters<typeof DeckGL>[0]["layers"]}
-        style={{ position: "absolute", inset: 0 }}
+        style={{
+          position: "absolute",
+          top: "0px",
+          right: "0px",
+          bottom: "0px",
+          left: "0px",
+        }}
       >
-        <Map ref={mapRef} reuseMaps mapStyle={isDarkMode ? DARK_STYLE : LIGHT_STYLE} />
+        <Map
+          ref={mapRef}
+          reuseMaps
+          mapStyle={isDarkMode ? BASEMAP_STYLES.dark : BASEMAP_STYLES.light}
+        />
       </DeckGL>
 
       {/* Imagery selection box + crosshair */}

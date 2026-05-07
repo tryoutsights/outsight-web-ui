@@ -42,12 +42,16 @@ import { useAuth } from "@/hooks/use-auth";
 import { useResizablePanel } from "@/hooks/use-resizable-panel";
 import { apiFetch } from "@/lib/api-client";
 import {
+  ANALYZE_MAX_IMAGE_SETS,
+  DEFAULT_IMAGERY_OPACITY,
+} from "./platform/constants";
+import {
   AREA_SIZE_OPTIONS,
   COPILOT_THINKING_TEXT,
+  DEFAULT_COPILOT_REPLY,
   LEFT_PANEL_DEFAULT_WIDTH,
   LEFT_PANEL_MAX_WIDTH,
   LEFT_PANEL_MIN_WIDTH,
-  DEFAULT_COPILOT_REPLY,
   clamp,
   fetchImagery,
   hasValidBbox,
@@ -223,7 +227,7 @@ const Platform = () => {
       visible: true,
       url: activeImageUrl,
       bbox: rawBbox as [number, number, number, number],
-      opacity: 0.72,
+      opacity: DEFAULT_IMAGERY_OPACITY,
       band,
     });
   }, [activeImageUrl, selectedItem]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -348,7 +352,7 @@ const Platform = () => {
       const sortedData = [...(data || [])].sort(
         (a, b) => new Date(a.capture_date).getTime() - new Date(b.capture_date).getTime()
       );
-      const image_sets = sortedData.slice(0, 8).map((item) => ({
+      const image_sets = sortedData.slice(0, ANALYZE_MAX_IMAGE_SETS).map((item) => ({
         date: item.capture_date.split("T")[0],
         cog_urls: item.render_payload?.cog_urls || [],
       }));
@@ -1062,7 +1066,11 @@ const Platform = () => {
                           type="range"
                           min={0} max={1} step={0.05}
                           value={layer.opacity}
-                          onChange={(e) => updateLayer(layer.id, { opacity: Number(e.target.value) })}
+                          onChange={(e) =>
+                            updateLayer(layer.id, layer.kind, {
+                              opacity: Number(e.target.value),
+                            })
+                          }
                           className="flex-1 accent-teal-500 h-1.5 rounded-lg appearance-none cursor-pointer"
                         />
                         <span className={`text-[10px] w-7 text-right shrink-0 ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
@@ -1076,7 +1084,14 @@ const Platform = () => {
                         <YearSlider
                           years={layer.years}
                           yearIdx={layer.selectedYearIdx}
-                          onYearIdx={(idx) => updateLayer(layer.id, { selectedYearIdx: typeof idx === "function" ? idx(layer.selectedYearIdx) : idx })}
+                          onYearIdx={(idx) =>
+                            updateLayer(layer.id, layer.kind, {
+                              selectedYearIdx:
+                                typeof idx === "function"
+                                  ? idx(layer.selectedYearIdx)
+                                  : idx,
+                            })
+                          }
                           isDark={isLeftDark}
                         />
                         {(() => {

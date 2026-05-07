@@ -29,6 +29,10 @@ export type ExpansionLayerDef = {
 };
 
 export type LayerDef = ImageryLayerDef | ExpansionLayerDef;
+export type LayerKind = LayerDef["kind"];
+export type LayerPatch<K extends LayerKind> = Partial<
+  Omit<Extract<LayerDef, { kind: K }>, "kind" | "id">
+>;
 
 // ---------------------------------------------------------------------------
 // useLayerManager hook
@@ -60,11 +64,13 @@ export function useLayerManager() {
     );
   }, []);
 
-  /** Partial update — preserves `kind` and `id`. */
+  /** Kind-aware partial update — preserves `kind` and `id`. */
   const updateLayer = useCallback(
-    (id: string, update: Partial<Omit<LayerDef, "kind" | "id">>) => {
+    <K extends LayerKind>(id: string, kind: K, update: LayerPatch<K>) => {
       setLayers((prev) =>
-        prev.map((l) => (l.id === id ? ({ ...l, ...update } as LayerDef) : l))
+        prev.map((l) =>
+          l.id === id && l.kind === kind ? ({ ...l, ...update } as LayerDef) : l
+        )
       );
     },
     []

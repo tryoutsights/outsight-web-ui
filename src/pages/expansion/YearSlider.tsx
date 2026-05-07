@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { YEAR_SLIDER_AUTOPLAY_MS } from "../platform/constants";
 
 type Props = {
   years: number[];
@@ -21,7 +22,7 @@ export default function YearSlider({ years, yearIdx, onYearIdx, isDark = true }:
           }
           return prev + 1;
         });
-      }, 1200);
+      }, YEAR_SLIDER_AUTOPLAY_MS);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

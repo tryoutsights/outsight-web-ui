@@ -198,6 +198,14 @@ const Platform = () => {
     }
   };
 
+  const isCompactTabs = leftPanelWidth < 430;
+  const panelTabs = [
+    { id: "chat" as const, label: "Copilot", Icon: Bot },
+    { id: "controls" as const, label: "Controls", Icon: Sliders },
+    { id: "insights" as const, label: "Insights", Icon: FileText },
+    { id: "layers" as const, label: "Layers", Icon: Layers },
+  ];
+
   return (
     <div className="flex h-screen w-full font-sans overflow-hidden bg-background text-foreground transition-colors duration-300">
       <div
@@ -230,43 +238,32 @@ const Platform = () => {
           </div>
         </div>
 
-        <div className="flex items-center border-b border-border bg-card transition-colors duration-300">
-          <button
-            onClick={() => setActiveTab("chat")}
-            className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "chat"
-              ? "text-teal-500 border-b-2 border-teal-500 bg-teal-500/10"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            <Bot size={16} /> Copilot
-          </button>
-          <button
-            onClick={() => setActiveTab("controls")}
-            className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "controls"
-              ? "text-teal-500 border-b-2 border-teal-500 bg-teal-500/10"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            <Sliders size={16} /> Controls
-          </button>
-          <button
-            onClick={() => setActiveTab("insights")}
-            className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "insights"
-              ? "text-teal-500 border-b-2 border-teal-500 bg-teal-500/10"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            <FileText size={16} /> Insights
-          </button>
-          <button
-            onClick={() => setActiveTab("layers")}
-            className={`flex-1 flex items-center justify-center gap-2 p-3 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "layers"
-              ? "text-teal-500 border-b-2 border-teal-500 bg-teal-500/10"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            <Layers size={16} /> Layers
-          </button>
+        <div className="flex items-stretch border-b border-border bg-card transition-colors duration-300 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {panelTabs.map(({ id, label, Icon }) => {
+            const isActive = activeTab === id;
+            const showLabel = !isCompactTabs || isActive;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                title={isCompactTabs && !isActive ? label : undefined}
+                className={`shrink-0 flex items-center border-b-2 text-xs font-bold uppercase tracking-wider transition-colors py-3 ${
+                  isCompactTabs
+                    ? isActive
+                      ? "min-w-[132px] px-3 gap-2 justify-start"
+                      : "w-10 px-0 justify-center"
+                    : "flex-1 min-w-0 px-3 gap-2 justify-center"
+                } ${
+                  isActive
+                    ? "text-teal-500 border-teal-500 bg-teal-500/10"
+                    : "text-muted-foreground border-transparent hover:text-foreground"
+                }`}
+              >
+                <Icon size={16} className="shrink-0" />
+                {showLabel && <span className="truncate">{label}</span>}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">

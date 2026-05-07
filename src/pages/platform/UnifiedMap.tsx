@@ -269,17 +269,11 @@ export default function UnifiedMap({
           }`}
         >
           <div
-            className={`border-2 ${
-              isDarkMode ? "border-teal-500/50 bg-teal-500/10" : "border-teal-600/60 bg-teal-600/10"
-            } border-dashed relative flex items-center justify-center overflow-hidden`}
+            className="border-2 border-teal-500/60 bg-teal-500/10 border-dashed relative flex items-center justify-center overflow-hidden"
             style={{ width: `${boxPx}px`, height: `${boxPx}px` }}
           >
             {isGenerating && (
-              <div
-                className={`absolute inset-0 animate-pulse border-t-2 ${
-                  isDarkMode ? "bg-teal-500/20 border-teal-400" : "bg-teal-600/20 border-teal-600"
-                }`}
-              />
+              <div className="absolute inset-0 animate-pulse border-t-2 bg-teal-500/20 border-teal-500" />
             )}
             <div
               className={`absolute inset-0 opacity-30 ${
@@ -292,8 +286,8 @@ export default function UnifiedMap({
             />
           </div>
           <div className="absolute flex items-center justify-center">
-            <div className={`w-8 h-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"}`} />
-            <div className={`h-8 w-[2px] ${isDarkMode ? "bg-teal-400" : "bg-teal-600"} absolute`} />
+            <div className="w-8 h-[2px] bg-teal-500" />
+            <div className="h-8 w-[2px] bg-teal-500 absolute" />
             <div className="w-1.5 h-1.5 bg-white rounded-full z-10 shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
           </div>
         </div>
@@ -301,7 +295,7 @@ export default function UnifiedMap({
 
       {/* Expansion draw hint */}
       {drawMode && dragStart && dragCurrent && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-blue-950 text-blue-400 px-3 py-1 rounded border border-blue-400 text-xs pointer-events-none z-[500]">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-card text-foreground px-3 py-1 rounded border border-border text-xs pointer-events-none z-[500]">
           Release to query this area
         </div>
       )}

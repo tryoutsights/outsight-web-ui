@@ -2,23 +2,21 @@ import { legendStops } from "./lib";
 
 type Props = {
   maxValue: number;
-  isDark?: boolean;
 };
 
-export default function Legend({ maxValue, isDark = true }: Props) {
+export default function Legend({ maxValue }: Props) {
   if (!maxValue || maxValue <= 0) return null;
 
   const stops = legendStops(maxValue, 6);
   const gradient = `linear-gradient(to right, ${stops.map((s) => s.color).join(", ")})`;
-  const labelText = isDark ? "text-slate-400" : "text-slate-500";
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className={`text-[10px] font-semibold uppercase tracking-widest ${labelText}`}>
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
         Built-up km² (year)
       </div>
       <div className="h-2.5 rounded w-full" style={{ background: gradient }} />
-      <div className={`flex justify-between text-[10px] ${labelText}`}>
+      <div className="flex justify-between text-[10px] text-muted-foreground">
         <span>0</span>
         <span>{(maxValue / 2).toFixed(3)}</span>
         <span>{maxValue.toFixed(3)}</span>

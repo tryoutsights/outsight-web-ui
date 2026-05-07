@@ -719,37 +719,43 @@ const Platform = () => {
           )}
 
           {activeTab === "controls" && mode === "expansion" && (
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4 bg-[#161b22] text-slate-200">
+            <div
+              className={`flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6 transition-colors duration-300 ${isLeftDark ? "bg-slate-900" : "bg-slate-50"
+                }`}
+            >
               {/* Mode toggle */}
-              <div className="flex rounded-lg overflow-hidden border border-[#30363d]">
+              <div className={`flex rounded-lg overflow-hidden border ${isLeftDark ? "border-slate-700" : "border-slate-200"}`}>
                 <button
                   onClick={() => setMode("imagery")}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${isLeftDark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   <Satellite size={12} /> Imagery
                 </button>
                 <button
                   onClick={() => setMode("expansion")}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-orange-600 text-white"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-teal-600 text-white"
                 >
                   <Hexagon size={12} /> Expansion
                 </button>
               </div>
 
-              {/* Dataset selector */}
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2">Dataset</div>
+                <label className={`flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider ${isLeftDark ? "text-slate-400" : "text-slate-600"}`}>
+                  <Hexagon size={14} className="text-orange-500" /> Dataset
+                </label>
                 {datasetsLoading ? (
-                  <div className="flex items-center gap-2 text-slate-500 text-xs"><Loader2 size={12} className="animate-spin" /> Loading…</div>
+                  <div className={`flex items-center gap-2 text-xs ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
+                    <Loader2 size={12} className="animate-spin" /> Loading datasets…
+                  </div>
                 ) : datasetsError ? (
-                  <div className="text-xs text-red-400">{datasetsError}</div>
+                  <div className="text-xs text-red-500">{datasetsError}</div>
                 ) : datasets.length === 0 ? (
-                  <div className="text-xs text-slate-500">No datasets found</div>
+                  <div className={`text-xs ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>No datasets found</div>
                 ) : (
                   <select
                     value={selectedSlug}
                     onChange={(e) => { setSelectedSlug(e.target.value); handleExpansionClear(); }}
-                    className="w-full bg-[#0d1117] border border-[#30363d] text-slate-300 text-xs rounded px-2 py-1.5 focus:outline-none focus:border-teal-500"
+                    className={`w-full border rounded-lg p-3 text-sm ${isLeftDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-200 text-slate-800"}`}
                   >
                     {datasets.map((d) => (
                       <option key={d.slug} value={d.slug}>{d.display_name}</option>
@@ -758,50 +764,60 @@ const Platform = () => {
                 )}
               </div>
 
-              {/* Draw / Clear */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDrawMode((m) => !m)}
-                  disabled={!selectedSlug || datasetsLoading}
-                  className={`flex-1 px-3 py-1.5 rounded text-xs font-semibold border transition-colors disabled:opacity-40 ${
-                    drawMode
-                      ? "bg-blue-900/50 border-blue-500 text-blue-300"
-                      : "bg-[#21262d] border-[#30363d] text-slate-300 hover:border-slate-500"
-                  }`}
-                >
-                  {drawMode ? "Cancel Draw" : "Draw BBOX"}
-                </button>
-                <button
-                  onClick={handleExpansionClear}
-                  disabled={!cells.length && !expBbox}
-                  className="flex-1 px-3 py-1.5 rounded text-xs font-semibold border border-[#30363d] bg-[#21262d] text-slate-300 hover:border-slate-500 disabled:opacity-40 transition-colors"
-                >
-                  Clear
-                </button>
+              <div>
+                <label className={`flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider ${isLeftDark ? "text-slate-400" : "text-slate-600"}`}>
+                  <Crosshair size={14} className="text-emerald-500" /> Bounding Box
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setDrawMode((m) => !m)}
+                    disabled={!selectedSlug || datasetsLoading}
+                    className={`px-3 py-2.5 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-40 ${drawMode
+                        ? isLeftDark
+                          ? "bg-teal-900/40 border-teal-500 text-teal-300"
+                          : "bg-teal-50 border-teal-500 text-teal-700"
+                        : isLeftDark
+                          ? "bg-slate-950 border-slate-700 text-slate-300 hover:border-slate-500"
+                          : "bg-white border-slate-200 text-slate-700 hover:border-slate-400"
+                      }`}
+                  >
+                    {drawMode ? "Cancel Draw" : "Draw BBOX"}
+                  </button>
+                  <button
+                    onClick={handleExpansionClear}
+                    disabled={!cells.length && !expBbox}
+                    className={`px-3 py-2.5 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-40 ${isLeftDark ? "bg-slate-950 border-slate-700 text-slate-300 hover:border-slate-500" : "bg-white border-slate-200 text-slate-700 hover:border-slate-400"}`}
+                  >
+                    Clear
+                  </button>
+                </div>
+                {drawMode && (
+                  <p className={`text-[10px] mt-2 leading-relaxed ${isLeftDark ? "text-teal-400" : "text-teal-600"}`}>
+                    Drag on the map to draw a bounding box, then release to query.
+                  </p>
+                )}
+                {expLoading && (
+                  <div className={`flex items-center gap-2 mt-2 text-[10px] ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
+                    <Loader2 size={12} className="animate-spin" /> Querying…
+                  </div>
+                )}
               </div>
 
-              {expLoading && (
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Loader2 size={12} className="animate-spin" /> Querying…
-                </div>
-              )}
-
-              {drawMode && (
-                <p className="text-xs text-blue-400 leading-relaxed">
-                  Drag on the map to draw a bounding box, then release to query.
-                </p>
-              )}
-
-              {/* Stats */}
-              <div className="h-px bg-[#30363d]" />
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2">Statistics</div>
-                <StatsPanel analytics={expAnalytics} selectedYear={expSelectedYear} loading={expLoading} />
+                <label className={`flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider ${isLeftDark ? "text-slate-400" : "text-slate-600"}`}>
+                  <Activity size={14} className="text-orange-500" /> Statistics
+                </label>
+                <StatsPanel
+                  analytics={expAnalytics}
+                  selectedYear={expSelectedYear}
+                  loading={expLoading}
+                  isDark={isLeftDark}
+                />
               </div>
 
               {mapLayers.some((l) => l.kind === "expansion") && (
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  Year slider and color scale are in the <strong className="text-slate-400">Layers</strong> tab.
+                <p className={`text-[10px] leading-relaxed ${isLeftDark ? "text-slate-400" : "text-slate-500"}`}>
+                  Year slider and color scale are in the <strong className={isLeftDark ? "text-slate-300" : "text-slate-700"}>Layers</strong> tab.
                 </p>
               )}
             </div>
@@ -1061,13 +1077,14 @@ const Platform = () => {
                           years={layer.years}
                           yearIdx={layer.selectedYearIdx}
                           onYearIdx={(idx) => updateLayer(layer.id, { selectedYearIdx: typeof idx === "function" ? idx(layer.selectedYearIdx) : idx })}
+                          isDark={isLeftDark}
                         />
                         {(() => {
                           const yr = layer.years[layer.selectedYearIdx] ?? null;
                           const maxVal = yr
                             ? layer.cells.reduce((m, c) => Math.max(m, (c[`built_${yr}_km2`] as number) ?? 0), 0)
                             : 0;
-                          return maxVal > 0 ? <Legend maxValue={maxVal} /> : null;
+                          return maxVal > 0 ? <Legend maxValue={maxVal} isDark={isLeftDark} /> : null;
                         })()}
                       </div>
                     )}

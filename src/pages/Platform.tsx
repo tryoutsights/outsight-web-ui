@@ -19,7 +19,7 @@ import ExpansionControlsPanel from "./platform/panels/ExpansionControlsPanel";
 import ImageryControlsPanel from "./platform/panels/ImageryControlsPanel";
 import InsightsPanel from "./platform/panels/InsightsPanel";
 import LayersPanel from "./platform/panels/LayersPanel";
-import { useCopilotChat } from "./platform/hooks/useCopilotChat";
+import { useCopilotChat, assistantTextMessage } from "./platform/hooks/useCopilotChat";
 import { useExpansionPipeline } from "./platform/hooks/useExpansionPipeline";
 import { useImageryPipeline } from "./platform/hooks/useImageryPipeline";
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -113,30 +113,31 @@ const Platform = () => {
     addLayer,
   });
 
-  const appendRetrieveMessage = (text: string) => {
-    setMessages((prev) => [...prev, { role: "bot", text }]);
-  };
+  const {
+    messages,
+    setMessages,
+    chatInput,
+    setChatInput,
+    isChatTyping,
+    handleChatSubmit,
+    handlePromptClick,
+  } = useCopilotChat({
+    mode,
+    setMode,
+    setActiveTab,
+    setCoordinates,
+    setCloudCover,
+    setAreaSize,
+    setBand,
+    setZoom,
+    setDateRange,
+    requestSignIn,
+    handleRetrieve,
+  });
 
-  const { messages, setMessages, chatInput, setChatInput, isChatTyping, handleChatSubmit } =
-    useCopilotChat({
-      mode,
-      setMode,
-      setActiveTab,
-      coordinates,
-      setCoordinates,
-      cloudCover,
-      setCloudCover,
-      areaSize,
-      setAreaSize,
-      band,
-      setBand,
-      zoom,
-      setZoom,
-      dateRange,
-      setDateRange,
-      requestSignIn,
-      handleRetrieve,
-    });
+  const appendBotMessage = (text: string) => {
+    setMessages((prev) => [...prev, assistantTextMessage(text)]);
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
@@ -189,7 +190,7 @@ const Platform = () => {
       const result = await res.json();
       const finalText = [result.analysis, ...(result.key_features || [])].join("\n\n");
       setInsights(finalText);
-      setMessages((prev) => [...prev, { role: "bot", text: finalText }]);
+      appendBotMessage(finalText);
       toast.success("Analysis complete.");
     } catch (err) {
       toast.error("Analysis Failed", { description: (err as Error).message });
@@ -278,8 +279,9 @@ const Platform = () => {
               isChatTyping={isChatTyping}
               chatInput={chatInput}
               setChatInput={setChatInput}
-              onRetrieve={() => handleRetrieve(undefined, appendRetrieveMessage)}
+              onRetrieve={() => handleRetrieve(undefined, appendBotMessage)}
               onChatSubmit={handleChatSubmit}
+              onPromptClick={handlePromptClick}
             />
           )}
 
@@ -318,7 +320,7 @@ const Platform = () => {
               band={band}
               setBand={setBand}
               isLoading={isLoading}
-              onRetrieve={() => handleRetrieve(undefined, appendRetrieveMessage)}
+              onRetrieve={() => handleRetrieve(undefined, appendBotMessage)}
             />
           )}
 

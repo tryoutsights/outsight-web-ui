@@ -1,239 +1,151 @@
 import { useState } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type DynamicToolCall } from "ai";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
-import {
-  COPILOT_THINKING_TEXT,
-  DEFAULT_COPILOT_REPLY,
-  clamp,
-  nearestAreaOption,
-  parseFallbackExtraction,
-} from "../lib";
-import type {
-  ChatMessage,
-  CopilotExtraction,
-  Coordinates,
-  DateRange,
-  SpectralBand,
-} from "../lib";
+import { clamp, nearestAreaOption } from "../lib";
+import type { Coordinates, DateRange, SpectralBand } from "../lib";
 
 type Args = {
   mode: "imagery" | "expansion";
   setMode: React.Dispatch<React.SetStateAction<"imagery" | "expansion">>;
-  setActiveTab: React.Dispatch<React.SetStateAction<"chat" | "controls" | "insights" | "layers">>;
-  coordinates: Coordinates;
+  setActiveTab: React.Dispatch<
+    React.SetStateAction<"chat" | "controls" | "insights" | "layers">
+  >;
   setCoordinates: React.Dispatch<React.SetStateAction<Coordinates>>;
-  cloudCover: number;
   setCloudCover: React.Dispatch<React.SetStateAction<number>>;
-  areaSize: number;
   setAreaSize: React.Dispatch<React.SetStateAction<number>>;
-  band: SpectralBand;
   setBand: React.Dispatch<React.SetStateAction<SpectralBand>>;
-  zoom: number;
   setZoom: React.Dispatch<React.SetStateAction<number>>;
-  dateRange: DateRange;
   setDateRange: React.Dispatch<React.SetStateAction<DateRange>>;
   requestSignIn: (message?: string) => void;
-  handleRetrieve: (
-    overrides?: {
-      lat?: number;
-      lon?: number;
-      startDate?: string;
-      endDate?: string;
-      areaSize?: number;
-      maxCloudCover?: number;
-    },
-    onMessage?: (text: string) => void
-  ) => void;
+  handleRetrieve: () => void;
 };
 
-const INITIAL_MESSAGE: ChatMessage = {
-  role: "bot",
-  text: "Spatial Copilot is ready. Adjust controls, then run spatial analysis to query imagery.",
+type MapUpdateInput = {
+  lat?: number;
+  lng?: number;
+  cloudCover?: number;
+  areaSize?: number;
+  band?: SpectralBand;
+  zoom?: number;
+  startDate?: string;
+  endDate?: string;
+  mode?: "imagery" | "expansion";
 };
 
 export function useCopilotChat({
   mode,
   setMode,
   setActiveTab,
-  coordinates,
   setCoordinates,
-  cloudCover,
   setCloudCover,
-  areaSize,
   setAreaSize,
-  band,
   setBand,
-  zoom,
   setZoom,
-  dateRange,
   setDateRange,
   requestSignIn,
   handleRetrieve,
 }: Args) {
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
   const [chatInput, setChatInput] = useState("");
-  const [isChatTyping, setIsChatTyping] = useState(false);
 
-  const setLatestThinkingMessage = (botText: string) => {
-    setMessages((prev) => {
-      const next = [...prev];
-      for (let i = next.length - 1; i >= 0; i -= 1) {
-        if (next[i].role === "bot" && next[i].text === COPILOT_THINKING_TEXT) {
-          next[i] = { role: "bot", text: botText };
-          return next;
-        }
-      }
-      return [...next, { role: "bot", text: botText }];
-    });
-  };
-
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim() || isChatTyping) return;
-    const text = chatInput.trim();
-
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text },
-      { role: "bot", text: COPILOT_THINKING_TEXT },
-    ]);
-    setChatInput("");
-    setIsChatTyping(true);
-
-    const applyExtraction = (parsed: CopilotExtraction): string => {
-      const updates: string[] = [];
-
-      if (parsed.intent === "expansion") {
-        setMode("expansion");
-        setActiveTab("controls");
-        updates.push("switched to Urban Expansion mode");
-      } else if (parsed.intent === "imagery") {
-        setMode("imagery");
-        updates.push("switched to Imagery mode");
-      }
-      const nextLat =
-        parsed.updatedCoordinates && Number.isFinite(parsed.updatedCoordinates.lat)
-          ? clamp(parsed.updatedCoordinates.lat, -90, 90)
-          : coordinates.lat;
-      const nextLng =
-        parsed.updatedCoordinates && Number.isFinite(parsed.updatedCoordinates.lng)
-          ? clamp(parsed.updatedCoordinates.lng, -180, 180)
-          : coordinates.lng;
-      if (nextLat !== coordinates.lat || nextLng !== coordinates.lng) {
-        setCoordinates({ lat: nextLat, lng: nextLng });
-        updates.push(`coordinates -> ${nextLat.toFixed(4)}, ${nextLng.toFixed(4)}`);
-      }
-
-      const nextCloud =
-        parsed.updatedCloudCover !== null && Number.isFinite(parsed.updatedCloudCover)
-          ? clamp(Math.round(parsed.updatedCloudCover), 0, 100)
-          : cloudCover;
-      if (nextCloud !== cloudCover) {
-        setCloudCover(nextCloud);
-        updates.push(`cloud cover -> ${nextCloud}%`);
-      }
-
-      const nextArea =
-        parsed.updatedAreaSize !== null && Number.isFinite(parsed.updatedAreaSize)
-          ? nearestAreaOption(parsed.updatedAreaSize)
-          : areaSize;
-      if (nextArea !== areaSize) {
-        setAreaSize(nextArea);
-        updates.push(`area extent -> ${nextArea} km²`);
-      }
-
-      if (parsed.updatedBand && parsed.updatedBand !== band) {
-        setBand(parsed.updatedBand);
-        updates.push(`band -> ${parsed.updatedBand}`);
-      }
-
-      const nextZoom =
-        parsed.updatedZoom !== null && Number.isFinite(parsed.updatedZoom)
-          ? clamp(Math.round(parsed.updatedZoom), 2, 19)
-          : zoom;
-      if (nextZoom !== zoom) {
-        setZoom(nextZoom);
-        updates.push(`zoom -> ${nextZoom}`);
-      }
-
-      const nextStartDate = parsed.updatedDateRange?.startDate ?? dateRange.startDate;
-      const nextEndDate = parsed.updatedDateRange?.endDate ?? dateRange.endDate;
-      if (parsed.updatedDateRange?.startDate && parsed.updatedDateRange?.endDate) {
-        setDateRange({ startDate: nextStartDate, endDate: nextEndDate });
-        updates.push(`date range -> ${nextStartDate} to ${nextEndDate}`);
-      }
-
-      if (parsed.triggerRun && parsed.intent !== "expansion") {
-        handleRetrieve(
-          {
-            lat: nextLat,
-            lon: nextLng,
-            startDate: nextStartDate,
-            endDate: nextEndDate,
-            areaSize: nextArea,
-            maxCloudCover: nextCloud,
-          },
-          (message) => setMessages((prev) => [...prev, { role: "bot", text: message }])
-        );
-        updates.push("started spatial retrieval");
-      }
-
-      return (
-        parsed.replyText?.trim() ||
-        (updates.length > 0 ? `Applied: ${updates.join("; ")}.` : DEFAULT_COPILOT_REPLY)
-      );
-    };
-
-    try {
-      try {
-        const response = await apiFetch(`/api/copilot/extract`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: text,
-            current_coordinates: coordinates,
-            current_cloud_cover: cloudCover,
-            current_area_size: areaSize,
-            current_band: band,
-            current_zoom: zoom,
-            current_date_range: dateRange,
-            current_mode: mode,
-          }),
-        });
-
-        if (response.ok) {
-          const parsed = (await response.json()) as CopilotExtraction;
-          setLatestThinkingMessage(applyExtraction(parsed));
-          return;
-        }
-
-        if (response.status === 401) {
+  const { messages, status, setMessages, sendMessage, addToolOutput } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/copilot/chat",
+      fetch: async (input, init) => {
+        const res = await apiFetch(input.toString(), init);
+        if (res.status === 401) {
           requestSignIn(
-            "Sign in to use the AI copilot for natural-language commands."
+            "Sign in to use the AI copilot for natural-language commands.",
           );
-          setLatestThinkingMessage(
-            "Sign in to chat with the AI copilot. I’ll pick up your request as soon as you’re back."
-          );
-          return;
+        }
+        return res;
+      },
+    }),
+    onToolCall: ({ toolCall }) => {
+      const dyn = toolCall as DynamicToolCall;
+
+      if (dyn.toolName === "update_map_parameters") {
+        const args = (dyn.input ?? {}) as MapUpdateInput;
+
+        if (args.mode === "expansion") {
+          setMode("expansion");
+          setActiveTab("controls");
+        } else if (args.mode === "imagery") {
+          setMode("imagery");
         }
 
-        const err = await response.text();
-        toast.error("LLM parsing unavailable", {
-          description: `Backend copilot parsing failed (${response.status}). Falling back to local parser.`,
-        });
-        console.warn("Copilot backend parse error:", err);
-      } catch {
-        toast.error("LLM parsing unavailable", {
-          description: "Could not reach backend copilot endpoint. Falling back to local parser.",
-        });
+        if (
+          args.lat !== undefined &&
+          args.lng !== undefined &&
+          Number.isFinite(args.lat) &&
+          Number.isFinite(args.lng)
+        ) {
+          setCoordinates({
+            lat: clamp(args.lat, -90, 90),
+            lng: clamp(args.lng, -180, 180),
+          });
+        }
+
+        if (args.cloudCover !== undefined && Number.isFinite(args.cloudCover)) {
+          setCloudCover(clamp(Math.round(args.cloudCover), 0, 100));
+        }
+
+        if (args.areaSize !== undefined && Number.isFinite(args.areaSize)) {
+          setAreaSize(nearestAreaOption(args.areaSize));
+        }
+
+        if (args.band) {
+          setBand(args.band);
+        }
+
+        if (args.zoom !== undefined && Number.isFinite(args.zoom)) {
+          setZoom(clamp(Math.round(args.zoom), 2, 19));
+        }
+
+        if (args.startDate && args.endDate) {
+          setDateRange({ startDate: args.startDate, endDate: args.endDate });
+        }
+      } else if (dyn.toolName === "trigger_analysis") {
+        if (mode === "expansion") {
+          toast.info(
+            "Draw a bounding box on the map to run an expansion query.",
+          );
+        } else {
+          handleRetrieve();
+        }
       }
 
-      const fallbackExtraction = parseFallbackExtraction(text, zoom);
-      setLatestThinkingMessage(applyExtraction(fallbackExtraction));
-    } finally {
-      setIsChatTyping(false);
-    }
+      // Record a result so the assistant tool call has a matching tool reply
+      // in conversation history. Without this, the next user message would
+      // arrive with an orphan tool_call and the LLM API would reject it.
+      addToolOutput({
+        tool: dyn.toolName as never,
+        toolCallId: dyn.toolCallId,
+        output: { ok: true },
+      });
+    },
+    onError: (error) => {
+      toast.error("Copilot error", {
+        description: error.message || "Copilot stream failed.",
+      });
+    },
+  });
+
+  const isChatTyping = status === "streaming" || status === "submitted";
+
+  const submit = (text: string) => {
+    if (!text.trim() || isChatTyping) return;
+    sendMessage({ text: text.trim() });
   };
+
+  const handleChatSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    submit(chatInput);
+    setChatInput("");
+  };
+
+  const handlePromptClick = (text: string) => submit(text);
 
   return {
     messages,
@@ -242,5 +154,14 @@ export function useCopilotChat({
     setChatInput,
     isChatTyping,
     handleChatSubmit,
+    handlePromptClick,
+    sendMessage,
   };
 }
+
+// Small helper used by other modules that want to build assistant messages.
+export const assistantTextMessage = (text: string) => ({
+  id: crypto.randomUUID(),
+  role: "assistant" as const,
+  parts: [{ type: "text" as const, text }],
+});

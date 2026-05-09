@@ -1,21 +1,62 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import { Activity, Bot, CloudRain, Crosshair, Loader2, Maximize, Play, Send, User } from "lucide-react";
-import { COPILOT_THINKING_TEXT } from "../lib";
-import type { ChatMessage, Coordinates, SpectralBand } from "../lib";
+import { Activity, Bot, CloudRain, Crosshair, Loader2, Maximize, Play, Send, User, Sparkles, Map } from "lucide-react";
+import type { Coordinates, SpectralBand } from "../lib";
+import type { UIMessage } from "ai";
+import { isToolUIPart, getToolName } from "ai";
 
 type Props = {
   coordinates: Coordinates;
   areaSize: number;
   cloudCover: number;
   band: SpectralBand;
-  messages: ChatMessage[];
+  messages: UIMessage[];
   isLoading: boolean;
   isChatTyping: boolean;
   chatInput: string;
   setChatInput: Dispatch<SetStateAction<string>>;
   onRetrieve: () => void;
   onChatSubmit: (e: FormEvent) => void;
+  onPromptClick: (text: string) => void;
 };
+
+type MapUpdateInput = {
+  lat?: number;
+  lng?: number;
+  cloudCover?: number;
+  areaSize?: number;
+  zoom?: number;
+  band?: string;
+  mode?: string;
+  startDate?: string;
+  endDate?: string;
+};
+
+function describeMapUpdate(args: MapUpdateInput | undefined): string[] {
+  const lines: string[] = [];
+  if (args === undefined) return ["Adjusting view options..."];
+  if (typeof args.lat === "number" && typeof args.lng === "number") {
+    lines.push(`Coordinates: ${args.lat.toFixed(2)}, ${args.lng.toFixed(2)}`);
+  }
+  if (typeof args.cloudCover === "number") {
+    lines.push(`Cloud cover: ${Math.round(args.cloudCover)}%`);
+  }
+  if (typeof args.areaSize === "number") {
+    lines.push(`Area size: ${args.areaSize} km²`);
+  }
+  if (typeof args.zoom === "number") {
+    lines.push(`Zoom: ${args.zoom}`);
+  }
+  if (args.band) {
+    lines.push(`Band: ${args.band}`);
+  }
+  if (args.mode) {
+    lines.push(`Mode: ${args.mode}`);
+  }
+  if (args.startDate || args.endDate) {
+    lines.push(`Dates: ${args.startDate ?? "?"} → ${args.endDate ?? "?"}`);
+  }
+  return lines.length ? lines : ["Adjusting view options..."];
+}
 
 export default function ChatPanel({
   coordinates,
@@ -29,6 +70,7 @@ export default function ChatPanel({
   setChatInput,
   onRetrieve,
   onChatSubmit,
+  onPromptClick,
 }: Props) {
   return (
     <div className="flex-1 min-h-0 flex flex-col h-full bg-background">
@@ -56,9 +98,38 @@ export default function ChatPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-6 text-muted-foreground px-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-500/10 to-emerald-600/10 flex items-center justify-center mb-2 shadow-sm border border-teal-500/20">
+              <Sparkles className="text-teal-600 dark:text-teal-400" size={28} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-foreground">Spatial Copilot</h3>
+              <p className="text-sm max-w-[200px]">Ask me to move the map, change parameters, or analyze an area.</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 justify-center w-full max-w-[280px]">
+              {[
+                { label: "Show me New York", icon: <Map size={12} /> },
+                { label: "Run analysis here", icon: <Play size={12} /> },
+                { label: "Less cloud cover", icon: <CloudRain size={12} /> }
+              ].map(chip => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => onPromptClick(chip.label)}
+                  className="text-xs px-3 py-2 bg-muted/50 hover:bg-teal-500/10 hover:text-teal-600 border border-border hover:border-teal-500/30 rounded-full transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  {chip.icon} {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg) => (
           <div
-            key={`${msg.role}-${idx}`}
+            key={msg.id}
             className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
           >
             <div
@@ -70,21 +141,67 @@ export default function ChatPanel({
             >
               {msg.role === "user" ? <User size={14} /> : <Bot size={14} />}
             </div>
-            <div
-              className={`p-3 rounded-2xl text-sm max-w-[85%] whitespace-pre-wrap shadow-sm ${
-                msg.role === "user"
-                  ? "bg-gradient-to-br from-teal-600 to-emerald-600 text-white rounded-tr-none"
-                  : "bg-card text-card-foreground border border-border rounded-tl-none"
-              }`}
-            >
-              {msg.role === "bot" && msg.text === COPILOT_THINKING_TEXT ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" />
-                  {COPILOT_THINKING_TEXT}
-                </span>
-              ) : (
-                <div>{msg.text}</div>
-              )}
+            <div className="flex flex-col gap-2 max-w-[85%]">
+              {/* Render each part of the UIMessage */}
+              {msg.parts.map((part, i) => {
+                // Text parts
+                if (part.type === "text" && part.text) {
+                  return (
+                    <div
+                      key={`${msg.id}-text-${i}`}
+                      className={`p-3 rounded-2xl text-sm whitespace-pre-wrap shadow-sm ${
+                        msg.role === "user"
+                          ? "bg-gradient-to-br from-teal-600 to-emerald-600 text-white rounded-tr-none"
+                          : "bg-card text-card-foreground border border-border rounded-tl-none"
+                      }`}
+                    >
+                      {part.text}
+                    </div>
+                  );
+                }
+
+                if (isToolUIPart(part)) {
+                  const toolName = getToolName(part);
+                  const toolArgs = part.input as MapUpdateInput | undefined;
+                  const state = part.state;
+
+                  if (toolName === "update_map_parameters") {
+                    return (
+                      <div key={`${msg.id}-tool-${i}`} className="text-xs p-3 rounded-xl border border-border bg-muted/30 shadow-sm flex flex-col gap-2">
+                        <div className="flex items-center gap-2 font-medium text-foreground">
+                          <Crosshair size={14} className="text-emerald-500" />
+                          Updating map parameters
+                        </div>
+                        <div className="text-muted-foreground flex flex-col gap-0.5">
+                          {describeMapUpdate(toolArgs).map((line, j) => (
+                            <span key={j}>{line}</span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (toolName === "trigger_analysis") {
+                    return (
+                      <div key={`${msg.id}-tool-${i}`} className="text-xs p-3 rounded-xl border border-border bg-muted/30 shadow-sm flex flex-col gap-2">
+                        <div className="flex items-center gap-2 font-medium text-foreground">
+                          <Play size={14} className="text-amber-500" />
+                          Triggering Spatial Analysis
+                        </div>
+                        <div className="text-muted-foreground">
+                          Retrieving satellite imagery for current view...
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={`${msg.id}-tool-${i}`} className="text-xs p-3 rounded-xl border border-border bg-muted/30 shadow-sm">
+                      <span className="font-medium">{toolName}</span>: {state}
+                    </div>
+                  );
+                }
+
+                return null;
+              })}
             </div>
           </div>
         ))}

@@ -26,10 +26,17 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
     setDatasetsLoading(true);
     fetchStoreInfo()
       .then((info) => {
-        const ds = info.cities.map(c => ({
-          slug: c.city_slug,
-          display_name: c.city_slug.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
-        }));
+        const ds = info.cities.map(c => {
+          let displayName = c.city_slug.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+          if (c.city_slug === "nac_egypt") displayName = "New Administrative Capital, Egypt";
+          if (c.city_slug === "bangalore") displayName = "Bangalore, India";
+          
+          return {
+            slug: c.city_slug,
+            display_name: displayName,
+            bbox: c.bbox
+          };
+        });
         setDatasets(ds);
         if (ds.length > 0) setSelectedSlug(ds[0].slug);
       })

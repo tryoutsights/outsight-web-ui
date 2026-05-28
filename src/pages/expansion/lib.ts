@@ -63,6 +63,7 @@ export type BBox = {
 export type Dataset = {
   slug: string;
   display_name: string;
+  bbox?: number[];
 };
 
 // ---------------------------------------------------------------------------

@@ -303,7 +303,19 @@ const Platform = () => {
               datasetsLoading={datasetsLoading}
               datasetsError={datasetsError}
               selectedSlug={selectedSlug}
-              setSelectedSlug={setSelectedSlug}
+              setSelectedSlug={(value) => {
+                const newSlug = typeof value === "function" ? value(selectedSlug) : value;
+                setSelectedSlug(newSlug);
+                const ds = datasets.find((d) => d.slug === newSlug);
+                if (ds && ds.bbox) {
+                  const [minLon, minLat, maxLon, maxLat] = ds.bbox;
+                  setCoordinates({
+                    lat: (minLat + maxLat) / 2,
+                    lng: (minLon + maxLon) / 2,
+                  });
+                  setZoom(11);
+                }
+              }}
               onClear={handleExpansionClear}
               drawMode={drawMode}
               setDrawMode={setDrawMode}

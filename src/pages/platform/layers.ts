@@ -26,6 +26,7 @@ export type ExpansionLayerDef = {
   years: number[];
   selectedYearIdx: number;
   bbox: [number, number, number, number] | null;
+  cumulativeMode?: boolean;
 };
 
 export type LayerDef = ImageryLayerDef | ExpansionLayerDef;

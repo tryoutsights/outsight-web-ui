@@ -1,0 +1,2078 @@
+diff --git a/index.html b/index.html
+index 3d7b51c..fdbcbab 100644
+--- a/index.html
++++ b/index.html
+@@ -1,5 +1,5 @@
+ <!doctype html>
+-<html lang="en" class="dark">
++<html lang="en">
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -8,7 +8,7 @@
+     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+     <link rel="preconnect" href="https://fonts.googleapis.com" />
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
++    <link href="https://fonts.googleapis.com/css2?family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet" />
+ 
+     <meta property="og:title" content="Outsights — Earth Observation" />
+     <meta property="og:description" content="Satellite imagery retrieval interface" />
+diff --git a/package-lock.json b/package-lock.json
+index 74c6279..50239f1 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -11,6 +11,7 @@
+         "@ai-sdk/react": "^3.0.177",
+         "@deck.gl/geo-layers": "^9.3.2",
+         "@deck.gl/layers": "^9.3.2",
++        "@deck.gl/mapbox": "^9.3.2",
+         "@deck.gl/react": "^9.3.2",
+         "@hookform/resolvers": "^3.10.0",
+         "@microsoft/fetch-event-source": "^2.0.1",
+@@ -238,7 +239,6 @@
+       "integrity": "sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@babel/helper-validator-identifier": "^7.28.5",
+         "js-tokens": "^4.0.0",
+@@ -254,7 +254,6 @@
+       "integrity": "sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=6.9.0"
+       }
+@@ -369,6 +368,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=20.19.0"
+       },
+@@ -417,6 +417,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=20.19.0"
+       }
+@@ -502,6 +503,7 @@
+       "resolved": "https://registry.npmjs.org/@deck.gl/layers/-/layers-9.3.2.tgz",
+       "integrity": "sha512-TeVfhQ/cQU1oTlTn16mCp7268d1uBJ6dwfgmKXThe2TzW9hql3iJaxbYTKg2phDg5YSiGmeEOpXbeBh59jyUcA==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@loaders.gl/images": "^4.4.1",
+         "@loaders.gl/schema": "^4.4.1",
+@@ -519,6 +521,20 @@
+         "@luma.gl/engine": "~9.3.3"
+       }
+     },
++    "node_modules/@deck.gl/mapbox": {
++      "version": "9.3.2",
++      "resolved": "https://registry.npmjs.org/@deck.gl/mapbox/-/mapbox-9.3.2.tgz",
++      "integrity": "sha512-+T9pJwsOXwjUxyGN6oiBMfIs28VtDIG1V1Rqz4qqn4TjjNEFFw+xO0olJIg8FO5IAqw2OtePdsrMj0tX8tHdGQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@math.gl/web-mercator": "^4.1.0"
++      },
++      "peerDependencies": {
++        "@deck.gl/core": "~9.3.0",
++        "@luma.gl/core": "~9.3.3",
++        "@math.gl/web-mercator": "^4.1.0"
++      }
++    },
+     "node_modules/@deck.gl/mesh-layers": {
+       "version": "9.3.2",
+       "resolved": "https://registry.npmjs.org/@deck.gl/mesh-layers/-/mesh-layers-9.3.2.tgz",
+@@ -1390,6 +1406,7 @@
+       "resolved": "https://registry.npmjs.org/@loaders.gl/core/-/core-4.4.1.tgz",
+       "integrity": "sha512-/s4IuvCCQUepvhjLnmePwQppGko2d1pxRS+sp7lyExU0uiqo5dVsAKaCZ2VnddBkFWgDVb/wvcZUBmv/dWcj0Q==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@loaders.gl/loader-utils": "4.4.1",
+         "@loaders.gl/schema": "4.4.1",
+@@ -1714,6 +1731,7 @@
+       "resolved": "https://registry.npmjs.org/@luma.gl/shadertools/-/shadertools-9.3.3.tgz",
+       "integrity": "sha512-4ZfG4/Utix951vqyiG/JIx+Eg+GMNwOxgr/07/i0gf7bK1gJZIEQ5BxVcDw4MCQfdoVlGPGzl0cQKbdqBvaCAQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@math.gl/core": "^4.1.0",
+         "@math.gl/types": "^4.1.0"
+@@ -1727,7 +1745,6 @@
+       "resolved": "https://registry.npmjs.org/@luma.gl/webgl/-/webgl-9.3.3.tgz",
+       "integrity": "sha512-X+aavdP5o6VFHSA0es9gKZTT145jfcFbhKJt/gwJrptnKNoIW4+Y37ZEpCo1AzAnr+FQCxjgcM2kOCpoWMfSVA==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@math.gl/types": "^4.1.0",
+         "@probe.gl/env": "^4.1.1"
+@@ -1866,8 +1883,7 @@
+       "version": "4.1.0",
+       "resolved": "https://registry.npmjs.org/@math.gl/sun/-/sun-4.1.0.tgz",
+       "integrity": "sha512-i3q6OCBLSZ5wgZVhXg+X7gsjY/TUtuFW/2KBiq/U1ypLso3S4sEykoU/MGjxUv1xiiGtr+v8TeMbO1OBIh/HmA==",
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/@math.gl/types": {
+       "version": "4.1.0",
+@@ -4521,8 +4537,7 @@
+       "resolved": "https://registry.npmjs.org/@types/aria-query/-/aria-query-5.0.4.tgz",
+       "integrity": "sha512-rfT93uj5s0PRL7EzccGMs3brplhcrghnDoV26NqKhCAS1hVo+WdNsPvE/yb6ilfr5hi2MEk6d5EWJTKdxg8jVw==",
+       "dev": true,
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/@types/brotli": {
+       "version": "1.3.5",
+@@ -4709,8 +4724,7 @@
+       "version": "2019.7.3",
+       "resolved": "https://registry.npmjs.org/@types/offscreencanvas/-/offscreencanvas-2019.7.3.tgz",
+       "integrity": "sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==",
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/@types/pako": {
+       "version": "1.0.7",
+@@ -4737,6 +4751,7 @@
+       "integrity": "sha512-z9VXpC7MWrhfWipitjNdgCauoMLRdIILQsAEV+ZesIzBq/oUlxk0m3ApZuMFCXdnS4U7KrI+l3WRUEGQ8K1QKw==",
+       "devOptional": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@types/prop-types": "*",
+         "csstype": "^3.2.2"
+@@ -4748,6 +4763,7 @@
+       "integrity": "sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==",
+       "devOptional": true,
+       "license": "MIT",
++      "peer": true,
+       "peerDependencies": {
+         "@types/react": "^18.0.0"
+       }
+@@ -4815,6 +4831,7 @@
+       "integrity": "sha512-plR3pp6D+SSUn1HM7xvSkx12/DhoHInI2YF35KAcVFNZvlC0gtrWqx7Qq1oH2Ssgi0vlFRCTbP+DZc7B9+TtsQ==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@typescript-eslint/scope-manager": "8.59.2",
+         "@typescript-eslint/types": "8.59.2",
+@@ -5221,6 +5238,7 @@
+       "integrity": "sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "acorn": "bin/acorn"
+       },
+@@ -5279,7 +5297,6 @@
+       "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=8"
+       }
+@@ -5578,6 +5595,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "baseline-browser-mapping": "^2.10.12",
+         "caniuse-lite": "^1.0.30001782",
+@@ -6129,6 +6147,7 @@
+       "resolved": "https://registry.npmjs.org/date-fns/-/date-fns-3.6.0.tgz",
+       "integrity": "sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==",
+       "license": "MIT",
++      "peer": true,
+       "funding": {
+         "type": "github",
+         "url": "https://github.com/sponsors/kossnocorp"
+@@ -6226,8 +6245,7 @@
+       "resolved": "https://registry.npmjs.org/dom-accessibility-api/-/dom-accessibility-api-0.5.16.tgz",
+       "integrity": "sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==",
+       "dev": true,
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/dom-helpers": {
+       "version": "5.2.1",
+@@ -6262,7 +6280,8 @@
+       "version": "8.6.0",
+       "resolved": "https://registry.npmjs.org/embla-carousel/-/embla-carousel-8.6.0.tgz",
+       "integrity": "sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA==",
+-      "license": "MIT"
++      "license": "MIT",
++      "peer": true
+     },
+     "node_modules/embla-carousel-react": {
+       "version": "8.6.0",
+@@ -6386,6 +6405,7 @@
+       "integrity": "sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@eslint-community/eslint-utils": "^4.8.0",
+         "@eslint-community/regexpp": "^4.12.1",
+@@ -7253,6 +7273,7 @@
+       "resolved": "https://registry.npmjs.org/jiti/-/jiti-1.21.7.tgz",
+       "integrity": "sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==",
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "jiti": "bin/jiti.js"
+       }
+@@ -7282,6 +7303,7 @@
+       "integrity": "sha512-ECi4Fi2f7BdJtUKTflYRTiaMxIB0O6zfR1fX0GXpUrf6flp8QIYn1UT20YQqdSOfk2dfkCwS8LAFoJDEppNK5Q==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@asamuzakjp/css-color": "^5.1.11",
+         "@asamuzakjp/dom-selector": "^7.1.1",
+@@ -7550,7 +7572,6 @@
+       "integrity": "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "bin": {
+         "lz-string": "bin/bin.js"
+       }
+@@ -7790,8 +7811,7 @@
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/mjolnir.js/-/mjolnir.js-3.0.0.tgz",
+       "integrity": "sha512-siX3YCG7N2HnmN1xMH3cK4JkUZJhbkhRFJL+G5N1vH0mh1t5088rJknIoqDFWDIU6NPGvRRgLnYW3ZHjSMEBLA==",
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/ms": {
+       "version": "2.1.3",
+@@ -8100,6 +8120,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "nanoid": "^3.3.11",
+         "picocolors": "^1.1.1",
+@@ -8262,7 +8283,6 @@
+       "resolved": "https://registry.npmjs.org/preact/-/preact-10.29.1.tgz",
+       "integrity": "sha512-gQCLc/vWroE8lIpleXtdJhTFDogTdZG9AjMUpVkDf2iTCNwYNWA+u16dL41TqUDJO4gm2IgrcMv3uTpjd4Pwmg==",
+       "license": "MIT",
+-      "peer": true,
+       "funding": {
+         "type": "opencollective",
+         "url": "https://opencollective.com/preact"
+@@ -8284,7 +8304,6 @@
+       "integrity": "sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "ansi-regex": "^5.0.1",
+         "ansi-styles": "^5.0.0",
+@@ -8300,7 +8319,6 @@
+       "integrity": "sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=10"
+       },
+@@ -8390,6 +8408,7 @@
+       "resolved": "https://registry.npmjs.org/react/-/react-18.3.1.tgz",
+       "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "loose-envify": "^1.1.0"
+       },
+@@ -8416,6 +8435,7 @@
+       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz",
+       "integrity": "sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "loose-envify": "^1.1.0",
+         "scheduler": "^0.23.2"
+@@ -8429,6 +8449,7 @@
+       "resolved": "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.75.0.tgz",
+       "integrity": "sha512-Ovv94H+0p3sJ7B9B5QxPuCP1u8V/cHuVGyH55cSwodYDtoJwK+fqk3vjfIgSX59I2U/bU4z0nRJ9HMLpNiWEmw==",
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=18.0.0"
+       },
+@@ -8445,8 +8466,7 @@
+       "resolved": "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz",
+       "integrity": "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==",
+       "dev": true,
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/react-map-gl": {
+       "version": "8.1.1",
+@@ -9246,6 +9266,7 @@
+       "resolved": "https://registry.npmjs.org/tailwindcss/-/tailwindcss-3.4.19.tgz",
+       "integrity": "sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@alloc/quick-lru": "^5.2.0",
+         "arg": "^5.0.2",
+@@ -9413,6 +9434,7 @@
+       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz",
+       "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==",
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -9558,6 +9580,7 @@
+       "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+       "dev": true,
+       "license": "Apache-2.0",
++      "peer": true,
+       "bin": {
+         "tsc": "bin/tsc",
+         "tsserver": "bin/tsserver"
+@@ -9785,6 +9808,7 @@
+       "integrity": "sha512-Bby3NOsna2jsjfLVOHKes8sGwgl4TT0E6vvpYgnAYDIF/tie7MRaFthmKuHx1NSXjiTueXH3do80FMQgvEktRg==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "esbuild": "^0.27.0",
+         "fdir": "^6.5.0",
+@@ -10385,6 +10409,7 @@
+       "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -10657,6 +10682,7 @@
+       "resolved": "https://registry.npmjs.org/zod/-/zod-3.25.76.tgz",
+       "integrity": "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==",
+       "license": "MIT",
++      "peer": true,
+       "funding": {
+         "url": "https://github.com/sponsors/colinhacks"
+       }
+diff --git a/package.json b/package.json
+index c0ec28b..d880710 100644
+--- a/package.json
++++ b/package.json
+@@ -17,6 +17,7 @@
+     "@ai-sdk/react": "^3.0.177",
+     "@deck.gl/geo-layers": "^9.3.2",
+     "@deck.gl/layers": "^9.3.2",
++    "@deck.gl/mapbox": "^9.3.2",
+     "@deck.gl/react": "^9.3.2",
+     "@hookform/resolvers": "^3.10.0",
+     "@microsoft/fetch-event-source": "^2.0.1",
+diff --git a/src/components/LandingNavbar.tsx b/src/components/LandingNavbar.tsx
+index 8740756..2d428f3 100644
+--- a/src/components/LandingNavbar.tsx
++++ b/src/components/LandingNavbar.tsx
+@@ -1,18 +1,22 @@
++import { useState } from "react";
+ import { Link } from "react-router-dom";
+-import { Satellite } from "lucide-react";
++import { Satellite, Menu, X } from "lucide-react";
+ import { Button } from "@/components/ui/button";
+ import { UserMenu } from "@/components/auth/UserMenu";
+ 
+ const LandingNavbar = () => {
++  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
++
+   const scrollTo = (id: string) => {
++    setIsMobileMenuOpen(false);
+     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+   };
+ 
+   return (
+-    <nav className="sticky top-0 z-50 glass border-b border-border/30">
++    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+       <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+         <div className="flex items-center gap-6">
+-          <Link to="/" className="flex items-center gap-2 group">
++          <Link to="/" className="flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-primary rounded outline-none">
+             <Satellite className="h-5 w-5 text-primary transition-transform group-hover:rotate-12" />
+             <span className="text-base font-bold tracking-widest uppercase text-foreground">
+               Outsights
+@@ -21,30 +25,52 @@ const LandingNavbar = () => {
+           <div className="hidden md:flex items-center gap-5 ml-4">
+             <button
+               onClick={() => scrollTo("solutions")}
+-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
++              className="text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded px-1 outline-none"
+             >
+               Solutions
+             </button>
+-            <Link
+-              to="/platform"
+-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+-            >
+-              Platform Demo
+-            </Link>
+-
+           </div>
+         </div>
+-        <div className="flex items-center gap-3">
++        <div className="hidden md:flex items-center gap-3">
+           <UserMenu isDark={false} />
+           <Button
+-            onClick={() => scrollTo("cta")}
++            asChild
+             size="sm"
+-            className="bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300"
++            className="bg-primary text-primary-foreground font-semibold tracking-wide transition-all duration-300 shadow-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
+           >
+-            Join Waitlist
++            <Link to="/platform">Explore the Map</Link>
+           </Button>
+         </div>
++        <div className="flex md:hidden items-center gap-3">
++          <UserMenu isDark={false} />
++          <button
++            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
++            className="text-foreground p-1 focus-visible:ring-2 focus-visible:ring-primary rounded outline-none"
++            aria-label="Toggle mobile menu"
++          >
++            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
++          </button>
++        </div>
+       </div>
++
++      {isMobileMenuOpen && (
++        <div className="md:hidden border-t border-border bg-background">
++          <div className="px-4 py-4 flex flex-col gap-4">
++            <button
++              onClick={() => scrollTo("solutions")}
++              className="text-left text-sm font-medium text-foreground py-2 border-b border-border/50 outline-none"
++            >
++              Solutions
++            </button>
++            <Button
++              asChild
++              className="w-full bg-primary text-primary-foreground font-semibold outline-none"
++            >
++              <Link to="/platform" onClick={() => setIsMobileMenuOpen(false)}>Explore the Map</Link>
++            </Button>
++          </div>
++        </div>
++      )}
+     </nav>
+   );
+ };
+diff --git a/src/components/auth/SignInModal.tsx b/src/components/auth/SignInModal.tsx
+index f1f7fe1..32f45cd 100644
+--- a/src/components/auth/SignInModal.tsx
++++ b/src/components/auth/SignInModal.tsx
+@@ -46,15 +46,15 @@ export const SignInModal = () => {
+         if (!open) dismissSignIn();
+       }}
+     >
+-      <DialogContent className="border-slate-800 bg-slate-950 text-slate-100 sm:max-w-md">
++      <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
+         <DialogHeader>
+-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg">
++          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+             <Satellite size={22} />
+           </div>
+           <DialogTitle className="text-center text-xl">
+             Sign in to Outsights
+           </DialogTitle>
+-          <DialogDescription className="text-center text-sm text-slate-400">
++          <DialogDescription className="text-center text-sm text-muted-foreground">
+             {signInReason ??
+               "Sign in to unlock AI-guided insights and chat with the spatial copilot."}
+           </DialogDescription>
+@@ -65,7 +65,7 @@ export const SignInModal = () => {
+             type="button"
+             onClick={handleGoogle}
+             disabled={!isConfigured || isStartingOAuth}
+-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
++            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground shadow-sm transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+           >
+             {isStartingOAuth ? (
+               <Loader2 size={18} className="animate-spin" />
+@@ -86,8 +86,8 @@ export const SignInModal = () => {
+             </p>
+           )}
+ 
+-          <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-500">
+-            <ShieldCheck size={12} className="text-emerald-500" />
++          <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground">
++            <ShieldCheck size={12} className="text-primary" />
+             <span>
+               We only request your name, email, and avatar from Google.
+             </span>
+diff --git a/src/components/auth/UserMenu.tsx b/src/components/auth/UserMenu.tsx
+index e4e1e2a..5eb8e1b 100644
+--- a/src/components/auth/UserMenu.tsx
++++ b/src/components/auth/UserMenu.tsx
+@@ -36,9 +36,7 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
+   if (isLoading) {
+     return (
+       <div
+-        className={`h-8 w-20 animate-pulse rounded-full ${
+-          isDark ? "bg-slate-800" : "bg-slate-200"
+-        }`}
++        className={`h-8 w-20 animate-pulse rounded-full bg-muted`}
+         aria-hidden="true"
+       />
+     );
+@@ -50,11 +48,7 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
+         type="button"
+         onClick={() => requestSignIn()}
+         disabled={!isConfigured}
+-        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+-          isDark
+-            ? "border-slate-700 bg-slate-900 text-slate-200 hover:border-teal-500 hover:text-teal-300"
+-            : "border-slate-200 bg-white text-slate-700 hover:border-teal-500 hover:text-teal-600"
+-        }`}
++        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 border-border bg-card text-foreground hover:border-primary hover:text-primary`}
+         title={isConfigured ? "Sign in" : "Sign-in not configured"}
+       >
+         <LogIn size={14} />
+@@ -78,23 +72,17 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
+       <DropdownMenuTrigger asChild>
+         <button
+           type="button"
+-          className={`flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors ${
+-            isDark
+-              ? "border-slate-700 bg-slate-900 hover:border-teal-500"
+-              : "border-slate-200 bg-white hover:border-teal-500"
+-          }`}
++          className={`flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors border-border bg-card hover:border-primary`}
+           aria-label="Account menu"
+         >
+           <Avatar className="h-7 w-7">
+             {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
+-            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-[10px] font-bold text-white">
++            <AvatarFallback className="bg-primary text-[10px] font-bold text-primary-foreground">
+               {initials}
+             </AvatarFallback>
+           </Avatar>
+           <span
+-            className={`max-w-[120px] truncate text-xs font-semibold ${
+-              isDark ? "text-slate-200" : "text-slate-700"
+-            }`}
++            className={`max-w-[120px] truncate text-xs font-semibold text-foreground`}
+           >
+             {meta.full_name ?? meta.name ?? user.email}
+           </span>
+diff --git a/src/index.css b/src/index.css
+index 7b0ae17..3eacac5 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -4,64 +4,79 @@
+ 
+ @layer base {
+   :root {
+-    --background: 220 20% 97%;
+-    --foreground: 220 20% 10%;
++    /* Cloud White background */
++    --background: 0 0% 100%;
++    /* Deep Slate text */
++    --foreground: 0 0% 20%;
+     --card: 0 0% 100%;
+-    --card-foreground: 220 20% 10%;
++    --card-foreground: 0 0% 20%;
+     --popover: 0 0% 100%;
+-    --popover-foreground: 220 20% 10%;
+-    --primary: 186 100% 50%;
+-    --primary-foreground: 220 40% 6%;
+-    --secondary: 210 40% 96%;
+-    --secondary-foreground: 220 20% 10%;
+-    --muted: 210 40% 96%;
+-    --muted-foreground: 215 16% 47%;
+-    --accent: 186 100% 50%;
+-    --accent-foreground: 220 40% 6%;
++    --popover-foreground: 0 0% 20%;
++    /* Accent Blue */
++    --primary: 217 71% 52%;
++    --primary-foreground: 0 0% 100%;
++    /* Faint Fog */
++    --secondary: 240 25% 98%;
++    --secondary-foreground: 0 0% 20%;
++    /* Faint Fog / Graphite */
++    --muted: 240 25% 98%;
++    --muted-foreground: 0 0% 33%;
++    --accent: 217 71% 52%;
++    --accent-foreground: 0 0% 100%;
+     --destructive: 0 84% 60%;
+-    --destructive-foreground: 210 40% 98%;
+-    --border: 214 32% 91%;
+-    --input: 214 32% 91%;
+-    --ring: 186 100% 50%;
+-    --radius: 0.5rem;
+-    --sidebar-background: 0 0% 98%;
+-    --sidebar-foreground: 240 5.3% 26.1%;
+-    --sidebar-primary: 240 5.9% 10%;
+-    --sidebar-primary-foreground: 0 0% 98%;
+-    --sidebar-accent: 240 4.8% 95.9%;
+-    --sidebar-accent-foreground: 240 5.9% 10%;
++    --destructive-foreground: 0 0% 100%;
++    /* Light Ash borders */
++    --border: 220 13% 91%;
++    --input: 220 13% 91%;
++    --ring: 217 71% 52%;
++    --radius: 0.375rem;
++    
++    /* Sidebar matching Faint Fog */
++    --sidebar-background: 240 25% 98%;
++    --sidebar-foreground: 0 0% 20%;
++    --sidebar-primary: 217 71% 52%;
++    --sidebar-primary-foreground: 0 0% 100%;
++    --sidebar-accent: 231 29% 95%; /* Polar Mist */
++    --sidebar-accent-foreground: 0 0% 20%;
+     --sidebar-border: 220 13% 91%;
+-    --sidebar-ring: 217.2 91.2% 59.8%;
++    --sidebar-ring: 217 71% 52%;
+   }
+ 
+   .dark {
+-    --background: 222 47% 5%;
+-    --foreground: 210 40% 92%;
+-    --card: 222 47% 7%;
+-    --card-foreground: 210 40% 92%;
+-    --popover: 222 47% 7%;
+-    --popover-foreground: 210 40% 92%;
+-    --primary: 186 100% 50%;
+-    --primary-foreground: 222 47% 5%;
+-    --secondary: 220 30% 12%;
+-    --secondary-foreground: 210 40% 92%;
+-    --muted: 220 30% 12%;
+-    --muted-foreground: 215 20% 55%;
+-    --accent: 186 100% 50%;
+-    --accent-foreground: 222 47% 5%;
+-    --destructive: 0 63% 31%;
++    /* Deep Slate background */
++    --background: 222 47% 11%;
++    /* Cloud White text */
++    --foreground: 210 40% 98%;
++    --card: 215 32% 17%;
++    --card-foreground: 210 40% 98%;
++    --popover: 215 32% 17%;
++    --popover-foreground: 210 40% 98%;
++    /* Accent Blue */
++    --primary: 217 71% 52%;
++    --primary-foreground: 0 0% 100%;
++    /* Muted Slate */
++    --secondary: 215 25% 27%;
++    --secondary-foreground: 210 40% 98%;
++    --muted: 215 25% 27%;
++    --muted-foreground: 215 20% 65%;
++    --accent: 217 71% 52%;
++    --accent-foreground: 0 0% 100%;
++    --destructive: 0 62.8% 30.6%;
+     --destructive-foreground: 210 40% 98%;
+-    --border: 220 20% 14%;
+-    --input: 220 20% 14%;
+-    --ring: 186 100% 50%;
+-    --sidebar-background: 222 47% 5%;
+-    --sidebar-foreground: 210 40% 92%;
+-    --sidebar-primary: 186 100% 50%;
+-    --sidebar-primary-foreground: 222 47% 5%;
+-    --sidebar-accent: 220 30% 12%;
+-    --sidebar-accent-foreground: 210 40% 92%;
+-    --sidebar-border: 220 20% 14%;
+-    --sidebar-ring: 186 100% 50%;
++    /* Slate borders */
++    --border: 215 25% 27%;
++    --input: 215 25% 27%;
++    --ring: 217 71% 52%;
++    
++    /* Sidebar */
++    --sidebar-background: 222 47% 11%;
++    --sidebar-foreground: 210 40% 98%;
++    --sidebar-primary: 217 71% 52%;
++    --sidebar-primary-foreground: 0 0% 100%;
++    --sidebar-accent: 215 25% 27%;
++    --sidebar-accent-foreground: 210 40% 98%;
++    --sidebar-border: 215 25% 27%;
++    --sidebar-ring: 217 71% 52%;
+   }
+ }
+ 
+@@ -70,46 +85,18 @@
+     @apply border-border;
+   }
+   body {
+-    @apply bg-background text-foreground font-sans;
+-    font-family: 'Inter', system-ui, sans-serif;
++    @apply bg-background text-foreground font-sans antialiased;
++    font-family: 'Sen', system-ui, sans-serif;
+   }
+ }
+ 
++/* Minimal utility classes for 21n */
+ @layer components {
+-  .glass {
+-    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+-  }
++  /* Removed .glass, no longer needed in minimal blueprint theme */
+ }
+ 
+ @layer utilities {
+-  .glow-cyan {
+-    box-shadow: 0 0 20px hsl(186 100% 50% / 0.3), 0 0 60px hsl(186 100% 50% / 0.1);
+-  }
+-  .glow-cyan-sm {
+-    box-shadow: 0 0 10px hsl(186 100% 50% / 0.2);
++  .shadow-soft {
++    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+   }
+ }
+-
+-/* Dot grid background */
+-.dot-grid {
+-  background-image: radial-gradient(circle, hsl(186 100% 50% / 0.08) 1px, transparent 1px);
+-  background-size: 24px 24px;
+-}
+-
+-/* Scan line animation */
+-@keyframes scan {
+-  0% { transform: translateY(-100%); }
+-  100% { transform: translateY(100vh); }
+-}
+-.scan-line {
+-  animation: scan 2.5s ease-in-out infinite;
+-}
+-
+-/* Pulse text */
+-@keyframes pulse-soft {
+-  0%, 100% { opacity: 0.5; }
+-  50% { opacity: 1; }
+-}
+-.pulse-soft {
+-  animation: pulse-soft 3s ease-in-out infinite;
+-}
+diff --git a/src/pages/Landing.tsx b/src/pages/Landing.tsx
+index dc965f2..53146ff 100644
+--- a/src/pages/Landing.tsx
++++ b/src/pages/Landing.tsx
+@@ -9,20 +9,20 @@ import LandingNavbar from "@/components/LandingNavbar";
+ const solutions = [
+   {
+     icon: MapPin,
+-    title: "Site Selection",
+-    description: "Identify optimal locations for development using high-resolution satellite data and geospatial analytics.",
++    title: "Identify Growth Corridors",
++    description: "Spot urban sprawl and infrastructure development years before they hit mainstream reports.",
+     image: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=400&fit=crop",
+   },
+   {
+     icon: Building2,
+-    title: "Project Monitoring",
+-    description: "Track construction progress from space with automated change detection and milestone reporting.",
++    title: "Track Development",
++    description: "Monitor new construction and land clearing across vast regions with automated satellite analysis.",
+     image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop",
+   },
+   {
+     icon: BarChart3,
+-    title: "Market Analysis",
+-    description: "Leverage satellite-derived insights to assess market trends, land use patterns, and regional growth.",
++    title: "Data-Driven Decisions",
++    description: "Validate your intuition with hard data. Make high-stakes land investments with confidence.",
+     image: "https://images.unsplash.com/photo-1460472178825-e5240623afd5?w=600&h=400&fit=crop",
+   },
+ ];
+@@ -46,65 +46,57 @@ const Landing = () => {
+ 
+       {/* Hero */}
+       <section className="relative overflow-hidden">
+-        <div className="absolute inset-0 dot-grid opacity-40" />
+         <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-32">
+           <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+             <div className="space-y-6">
+               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary tracking-wider uppercase">
+                 <Satellite className="h-3.5 w-3.5" />
+-                Geospatial Data for Real Estate
++                Geospatial Intelligence for Investors
+               </span>
+               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-foreground">
+-                Analyze sites & track construction{" "}
+-                <span className="text-primary">from space.</span>
++                Spot the next booming neighborhood <br className="hidden md:block" />
++                <span className="text-primary">before the market does.</span>
+               </h1>
+               <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+-                Outsights delivers satellite imagery and geospatial intelligence to help real estate and construction teams make faster, data-driven decisions.
++                Outsights delivers automated urban expansion analysis. Get the answers you need to make high-stakes land decisions—no GIS degree required.
+               </p>
+               <div className="flex flex-col sm:flex-row gap-3">
+                 <Button
+-                  size="lg"
+-                  onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
+-                  className="bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300 hover:scale-[1.02]"
+-                >
+-                  Request a Pilot
+-                </Button>
+-                <Button
+-                  variant="outline"
+                   size="lg"
+                   asChild
+-                  className="border-border/50 hover:border-primary/50 hover:text-primary transition-all duration-300"
++                  className="bg-primary text-primary-foreground font-semibold tracking-wide transition-all duration-300 hover:scale-[1.02] shadow-sm"
+                 >
+-                  <Link to="/platform">View Demo Image</Link>
++                  <Link to="/platform">Explore the Map</Link>
+                 </Button>
+                 <Button
+                   variant="outline"
+                   size="lg"
+-                  asChild
+-                  className="border-border/50 hover:border-orange-500/50 hover:text-orange-400 transition-all duration-300"
++                  onClick={() => document.getElementById("solutions")?.scrollIntoView({ behavior: "smooth" })}
++                  className="border-border/50 hover:border-primary/50 hover:text-primary transition-all duration-300"
+                 >
+-                  <Link to="/expansion">Urban Expansion</Link>
++                  View Solutions
+                 </Button>
+               </div>
+             </div>
+ 
+             <div className="relative">
+-              <div className="rounded-2xl overflow-hidden border border-border/30 glow-cyan-sm">
++              <div className="rounded-2xl overflow-hidden border border-border shadow-soft">
+                 <img
+                   src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop"
+                   alt="Aerial view of a construction site"
+                   className="w-full h-auto object-cover"
+-                  loading="lazy"
++                  loading="eager"
++                  fetchPriority="high"
+                 />
+               </div>
+-              <div className="absolute bottom-4 left-4 glass rounded-lg px-4 py-3 flex items-center gap-3 shadow-lg">
++              <div className="absolute bottom-4 left-4 bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-3 shadow-soft">
+                 <span className="relative flex h-2.5 w-2.5">
+-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
++                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
++                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+                 </span>
+                 <div>
+-                  <p className="text-xs font-semibold text-foreground">Site Status</p>
+-                  <p className="text-[10px] text-muted-foreground">Active Development</p>
++                  <p className="text-xs font-semibold text-foreground">Data Provenance</p>
++                  <p className="text-xs text-muted-foreground">Powered by 10m Sentinel-2 data</p>
+                 </div>
+               </div>
+             </div>
+@@ -117,10 +109,10 @@ const Landing = () => {
+         <div className="max-w-7xl mx-auto px-4 md:px-8">
+           <div className="text-center mb-14">
+             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+-              Built for Real Estate & Construction
++              Built for Real Estate Investors
+             </h2>
+             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+-              Purpose-built solutions powered by satellite imagery and geospatial intelligence.
++              Purpose-built solutions to validate your intuition and uncover hidden opportunities.
+             </p>
+           </div>
+           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+@@ -161,7 +153,7 @@ const Landing = () => {
+               Our platform transforms raw satellite imagery into actionable geospatial insights.
+             </p>
+           </div>
+-          <div className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border/30 glow-cyan-sm">
++          <div className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden border border-border shadow-soft">
+             <img
+               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=600&fit=crop"
+               alt="Satellite view of Earth"
+@@ -169,17 +161,17 @@ const Landing = () => {
+               loading="lazy"
+             />
+             {/* Floating analytics cards */}
+-            <div className="absolute top-6 left-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[200px]">
++            <div className="absolute top-6 left-6 bg-card border border-border rounded-lg px-4 py-3 shadow-soft max-w-[200px]">
+               <div className="flex items-center gap-2 mb-1">
+                 <Layers className="h-3.5 w-3.5 text-primary" />
+                 <span className="text-xs font-semibold text-foreground">Building Footprint</span>
+               </div>
+-              <p className="text-[10px] text-muted-foreground">12,847 structures detected</p>
++              <p className="text-xs text-muted-foreground">12,847 structures detected</p>
+               <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                 <div className="h-full w-[78%] rounded-full bg-primary" />
+               </div>
+             </div>
+-            <div className="absolute bottom-6 right-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[200px]">
++            <div className="absolute bottom-6 right-6 bg-card border border-border rounded-lg px-4 py-3 shadow-soft max-w-[200px]">
+               <div className="flex items-center gap-2 mb-1">
+                 <Tag className="h-3.5 w-3.5 text-primary" />
+                 <span className="text-xs font-semibold text-foreground">Land Use Classification</span>
+@@ -190,19 +182,19 @@ const Landing = () => {
+                   { label: "Commercial", pct: "28%" },
+                   { label: "Industrial", pct: "18%" },
+                 ].map((r) => (
+-                  <div key={r.label} className="flex justify-between text-[10px]">
++                  <div key={r.label} className="flex justify-between text-xs">
+                     <span className="text-muted-foreground">{r.label}</span>
+                     <span className="text-foreground font-medium">{r.pct}</span>
+                   </div>
+                 ))}
+               </div>
+             </div>
+-            <div className="absolute top-6 right-6 glass rounded-lg px-4 py-3 shadow-lg max-w-[180px]">
++            <div className="absolute top-6 right-6 bg-card border border-border rounded-lg px-4 py-3 shadow-soft max-w-[180px]">
+               <div className="flex items-center gap-2 mb-1">
+                 <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                 <span className="text-xs font-semibold text-foreground">Change Detection</span>
+               </div>
+-              <p className="text-[10px] text-muted-foreground">+14% development activity in Q4</p>
++              <p className="text-xs text-muted-foreground">+14% development activity in Q4</p>
+             </div>
+           </div>
+         </div>
+@@ -212,10 +204,10 @@ const Landing = () => {
+       <section id="cta" className="py-20 md:py-28">
+         <div className="max-w-3xl mx-auto px-4 md:px-8 text-center">
+           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+-            Drive sustainable growth.
++            Find your next investment.
+           </h2>
+           <p className="text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+-            Join our pilot program and get early access to satellite-powered geospatial analytics for your next project.
++            Join our waitlist and get early access to satellite-powered geospatial analytics for your next land acquisition.
+           </p>
+           <form
+             onSubmit={handleSubmit}
+@@ -224,13 +216,14 @@ const Landing = () => {
+             <Input
+               type="email"
+               placeholder="you@company.com"
++              aria-label="Email address"
+               value={email}
+               onChange={(e) => setEmail(e.target.value)}
+               className="flex-1 bg-card border-border/50 shadow-inner focus:border-primary focus:ring-primary"
+             />
+             <Button
+               type="submit"
+-              className="bg-primary text-primary-foreground font-semibold tracking-wide hover:glow-cyan transition-all duration-300 shrink-0"
++              className="bg-primary text-primary-foreground font-semibold tracking-wide transition-all duration-300 shrink-0 shadow-sm"
+             >
+               Request Access
+             </Button>
+diff --git a/src/pages/Platform.tsx b/src/pages/Platform.tsx
+index 036673d..69048db 100644
+--- a/src/pages/Platform.tsx
++++ b/src/pages/Platform.tsx
+@@ -49,7 +49,7 @@ const Platform = () => {
+   });
+   const [activeTab, setActiveTab] = useState<ActiveTab>("chat");
+   const [band, setBand] = useState<SpectralBand>("NDBI");
+-  const [coordinates, setCoordinates] = useState<Coordinates>({ lat: 37.7749, lng: -122.4194 });
++  const [coordinates, setCoordinates] = useState<Coordinates>({ lat: 30.2672, lng: -97.7431 }); // Austin, TX
+   const [zoom, setZoom] = useState(12);
+   const [areaSize, setAreaSize] = useState(25);
+   const [cloudCover, setCloudCover] = useState(20);
+@@ -66,7 +66,7 @@ const Platform = () => {
+   // ---------------------------------------------------------------------------
+   // Mode toggle: "imagery" | "expansion"
+   // ---------------------------------------------------------------------------
+-  const [mode, setMode] = useState<"imagery" | "expansion">("imagery");
++  const [mode, setMode] = useState<"imagery" | "expansion">("expansion");
+ 
+   // Layer manager (imagery + expansion layers rendered on unified map)
+   const { layers: mapLayers, addLayer, removeLayer, toggleLayer, updateLayer } = useLayerManager();
+@@ -144,6 +144,16 @@ const Platform = () => {
+     window.localStorage.setItem("outsights-theme", isDarkMode ? "dark" : "light");
+   }, [isDarkMode]);
+ 
++  useEffect(() => {
++    const handleKeyDown = (e: KeyboardEvent) => {
++      if (e.key === "Escape" && drawMode) {
++        setDrawMode(false);
++      }
++    };
++    window.addEventListener("keydown", handleKeyDown);
++    return () => window.removeEventListener("keydown", handleKeyDown);
++  }, [drawMode, setDrawMode]);
++
+   useEffect(() => {
+     setInsights("");
+   }, [data]);
+@@ -213,13 +223,13 @@ const Platform = () => {
+         style={{ width: `${leftPanelWidth}px` }}
+         className="h-full shrink-0 border-r border-border flex flex-col z-10 shadow-2xl bg-card transition-colors duration-300"
+       >
+-        <div className="p-5 border-b border-border flex items-center justify-between bg-gradient-to-r from-teal-500/5 to-emerald-500/5 transition-colors duration-300">
++        <div className="p-5 border-b border-border flex items-center justify-between bg-card transition-colors duration-300">
+           <Link to="/" className="flex items-center gap-3 group" title="Back to home">
+-            <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-2 rounded-lg text-white flex-shrink-0 shadow-md">
++            <div className="bg-primary p-2 rounded-lg text-primary-foreground flex-shrink-0 shadow-sm">
+               <Satellite size={20} />
+             </div>
+             <div>
+-              <h1 className="font-bold text-lg tracking-wide leading-tight text-foreground group-hover:text-teal-500 transition-colors">
++              <h1 className="font-bold text-lg tracking-wide leading-tight text-foreground group-hover:text-primary transition-colors">
+                 Outsights
+               </h1>
+               <p className="text-xs font-medium text-muted-foreground">
+@@ -256,8 +266,8 @@ const Platform = () => {
+                     : "flex-1 min-w-0 px-3 gap-2 justify-center"
+                 } ${
+                   isActive
+-                    ? "text-teal-500 border-teal-500 bg-teal-500/10"
+-                    : "text-muted-foreground border-transparent hover:text-foreground"
++                    ? "text-primary border-primary bg-primary/5"
++                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted"
+                 }`}
+               >
+                 <Icon size={16} className="shrink-0" />
+@@ -302,26 +312,38 @@ const Platform = () => {
+               expSelectedYear={expSelectedYear}
+               mapLayers={mapLayers}
+               hasCellsOrBbox={Boolean(cells.length || expBbox)}
++              updateLayer={updateLayer}
+             />
+           )}
+ 
+           {activeTab === "controls" && mode === "imagery" && (
+-            <ImageryControlsPanel
+-              mode={mode}
+-              setMode={setMode}
+-              coordinates={coordinates}
+-              setCoordinates={setCoordinates}
+-              dateRange={dateRange}
+-              setDateRange={setDateRange}
+-              areaSize={areaSize}
+-              setAreaSize={setAreaSize}
+-              cloudCover={cloudCover}
+-              setCloudCover={setCloudCover}
+-              band={band}
+-              setBand={setBand}
+-              isLoading={isLoading}
+-              onRetrieve={() => handleRetrieve(undefined, appendBotMessage)}
+-            />
++            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
++              <div className="p-4 border-b border-border/50 text-sm text-muted-foreground bg-card">
++                The AI Copilot automatically selects the optimal spectral bands, cloud cover, and spatial resolution based on your query.
++              </div>
++              <details className="group border-b border-border/50">
++                <summary className="cursor-pointer p-4 text-sm font-semibold hover:bg-muted transition-colors flex items-center justify-between outline-none">
++                  Advanced GIS Controls
++                  <span className="text-xs font-normal text-muted-foreground">Manual Override</span>
++                </summary>
++                <ImageryControlsPanel
++                  mode={mode}
++                  setMode={setMode}
++                  coordinates={coordinates}
++                  setCoordinates={setCoordinates}
++                  dateRange={dateRange}
++                  setDateRange={setDateRange}
++                  areaSize={areaSize}
++                  setAreaSize={setAreaSize}
++                  cloudCover={cloudCover}
++                  setCloudCover={setCloudCover}
++                  band={band}
++                  setBand={setBand}
++                  isLoading={isLoading}
++                  onRetrieve={() => handleRetrieve(undefined, appendBotMessage)}
++                />
++              </details>
++            </div>
+           )}
+ 
+           {activeTab === "insights" && (
+@@ -349,7 +371,7 @@ const Platform = () => {
+         aria-orientation="vertical"
+         aria-label="Resize left dashboard"
+         onMouseDown={startResize}
+-        className="w-1 shrink-0 cursor-col-resize bg-border/80 hover:bg-teal-500/80 transition-colors"
++        className="w-1 shrink-0 cursor-col-resize bg-border/80 hover:bg-primary/80 transition-colors"
+       />
+ 
+       <div className="flex-1 relative overflow-hidden bg-background transition-colors duration-300">
+@@ -373,14 +395,14 @@ const Platform = () => {
+ 
+         {/* Band legend overlay (imagery) */}
+         {hasOverlay && (
+-          <div className="absolute bottom-8 right-8 backdrop-blur-md border border-border bg-card/95 p-5 rounded-2xl shadow-2xl z-[1000] transition-colors duration-300">
+-            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 text-card-foreground">
+-              <Activity size={14} className={band === "NDBI" ? "text-orange-500" : band === "NDVI" ? "text-emerald-500" : "text-muted-foreground"} />
++          <div className="absolute bottom-8 right-8 border border-border bg-card p-5 rounded-xl shadow-soft z-[1000] transition-colors duration-300">
++            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 text-foreground">
++              <Activity size={14} className="text-primary" />
+               {band} Intensity
+             </h4>
+             <div className="flex items-center gap-4">
+               <span className="text-xs font-semibold text-muted-foreground">Low</span>
+-              <div className={`h-3 w-32 rounded-full shadow-inner ${band === "NDBI" ? "bg-gradient-to-r from-transparent via-orange-400 to-red-600" : band === "NDVI" ? "bg-gradient-to-r from-transparent via-emerald-400 to-green-700" : "bg-gradient-to-r from-muted to-foreground/60"}`} />
++              <div className="h-3 w-32 rounded-full shadow-inner bg-gradient-to-r from-transparent via-primary/50 to-primary" />
+               <span className="text-xs font-semibold text-muted-foreground">High</span>
+             </div>
+           </div>
+diff --git a/src/pages/expansion/Legend.tsx b/src/pages/expansion/Legend.tsx
+index 2f2910f..12b47f9 100644
+--- a/src/pages/expansion/Legend.tsx
++++ b/src/pages/expansion/Legend.tsx
+@@ -1,25 +1,27 @@
+-import { legendStops } from "./lib";
++import { yearLegendStops } from "./lib";
+ 
+ type Props = {
+-  maxValue: number;
++  years: number[];
+ };
+ 
+-export default function Legend({ maxValue }: Props) {
+-  if (!maxValue || maxValue <= 0) return null;
++export default function Legend({ years }: Props) {
++  if (!years.length) return null;
+ 
+-  const stops = legendStops(maxValue, 6);
++  const stops = yearLegendStops(years);
+   const gradient = `linear-gradient(to right, ${stops.map((s) => s.color).join(", ")})`;
+ 
+   return (
+     <div className="flex flex-col gap-1.5">
+       <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+-        Built-up km² (year)
++        First urbanised
+       </div>
+       <div className="h-2.5 rounded w-full" style={{ background: gradient }} />
+       <div className="flex justify-between text-[10px] text-muted-foreground">
+-        <span>0</span>
+-        <span>{(maxValue / 2).toFixed(3)}</span>
+-        <span>{maxValue.toFixed(3)}</span>
++        <span>{stops[0].value}</span>
++        {stops.length > 2 && (
++          <span>{stops[Math.floor(stops.length / 2)].value}</span>
++        )}
++        <span>{stops[stops.length - 1].value}</span>
+       </div>
+     </div>
+   );
+diff --git a/src/pages/expansion/lib.ts b/src/pages/expansion/lib.ts
+index a65cd4d..7de55d4 100644
+--- a/src/pages/expansion/lib.ts
++++ b/src/pages/expansion/lib.ts
+@@ -9,7 +9,7 @@ import { apiFetch } from "@/lib/api-client";
+ export type H3Cell = {
+   h3_id: string;
+   cell_area_km2: number;
+-  [key: string]: number | string; // built_YYYY_km2 columns
++  [key: string]: number | string; // builtup_km2_YYYY columns
+ };
+ 
+ export type PerYearStat = {
+@@ -37,9 +37,20 @@ export type MapResult = {
+   cells: H3Cell[];
+ };
+ 
+-export type Dataset = {
+-  slug: string;
+-  display_name: string;
++/** Global metadata returned by GET /api/spatial/datasets */
++export type StoreInfo = {
++  h3_resolution: number;
++  partition_resolution: number;
++  years: number[];
++  cities: Array<{
++    country: string;
++    city_slug: string;
++    bbox: number[];
++    years: number[];
++    model_version: string;
++    generated_at: string;
++  }>;
++  last_updated: string | null;
+ };
+ 
+ export type BBox = {
+@@ -49,11 +60,16 @@ export type BBox = {
+   maxLon: number;
+ };
+ 
++export type Dataset = {
++  slug: string;
++  display_name: string;
++};
++
+ // ---------------------------------------------------------------------------
+-// Color scale (YlOrRd — matches Honeycomb POC)
++// Color scales
+ // ---------------------------------------------------------------------------
+ 
+-/** Returns a [r, g, b, a] deck.gl color array for a built-up km² value. */
++/** @deprecated — continuous km² scale, kept for imagery band legend. */
+ export function makeColorScale(maxValue: number): (value: number) => [number, number, number, number] {
+   const norm = scaleLinear()
+     .domain([0, Math.max(maxValue, 1e-9)])
+@@ -63,7 +79,8 @@ export function makeColorScale(maxValue: number): (value: number) => [number, nu
+   return (value: number): [number, number, number, number] => {
+     if (!value || value <= 0) return [30, 35, 45, 50];
+     const t = norm(value);
+-    const rgb = interpolateYlOrRd(t).match(/\d+/g);
++    const constrainedT = 0.3 + t * 0.45;
++    const rgb = interpolateYlOrRd(constrainedT).match(/\d+/g);
+     if (!rgb) return [200, 100, 50, 200];
+     return [+rgb[0], +rgb[1], +rgb[2], 210];
+   };
+@@ -71,12 +88,50 @@ export function makeColorScale(maxValue: number): (value: number) => [number, nu
+ 
+ export type LegendStop = { value: number; color: string };
+ 
+-export function legendStops(maxValue: number, steps = 6): LegendStop[] {
+-  const fn = makeColorScale(maxValue);
+-  return Array.from({ length: steps }, (_, i) => {
+-    const value = (maxValue / (steps - 1)) * i;
+-    const [r, g, b] = fn(value);
+-    return { value, color: `rgb(${r},${g},${b})` };
++/**
++ * Returns the earliest year in which a cell has non-zero built-up area.
++ * `years` need not be pre-sorted.
++ */
++export function firstBuiltYear(cell: H3Cell, years: number[]): number | null {
++  const sorted = [...years].sort((a, b) => a - b);
++  for (const year of sorted) {
++    const val = (cell[`builtup_km2_${year}`] as number) ?? 0;
++    if (val > 0) return year;
++  }
++  return null;
++}
++
++/**
++ * Returns a color function that maps a cell's first-built year to an RGBA
++ * deck.gl color using the YlOrRd scale:
++ *   earliest year → yellow (established, older urbanisation)
++ *   latest year   → dark red (recent expansion frontier)
++ */
++export function makeYearColorScale(
++  years: number[]
++): (year: number) => [number, number, number, number] {
++  const sorted = [...years].sort((a, b) => a - b);
++  const minYear = sorted[0] ?? 0;
++  const maxYear = sorted[sorted.length - 1] ?? 0;
++  const range = maxYear - minYear || 1;
++
++  return (year: number): [number, number, number, number] => {
++    // Constrain t to [0.3, 0.75] to avoid pale yellow (too light) and dark maroon (too dark)
++    const t = (year - minYear) / range;
++    const constrainedT = 0.3 + t * 0.45;
++    const rgb = interpolateYlOrRd(constrainedT).match(/\d+/g);
++    if (!rgb) return [200, 100, 50, 210];
++    return [+rgb[0], +rgb[1], +rgb[2], 210];
++  };
++}
++
++/** One legend stop per year, ordered earliest → latest. */
++export function yearLegendStops(years: number[]): LegendStop[] {
++  const sorted = [...years].sort((a, b) => a - b);
++  const colorFn = makeYearColorScale(sorted);
++  return sorted.map((year) => {
++    const [r, g, b] = colorFn(year);
++    return { value: year, color: `rgb(${r},${g},${b})` };
+   });
+ }
+ 
+@@ -84,26 +139,30 @@ export function legendStops(maxValue: number, steps = 6): LegendStop[] {
+ // API client
+ // ---------------------------------------------------------------------------
+ 
+-export async function fetchDatasets(): Promise<Dataset[]> {
++/**
++ * Fetch global store metadata: available years, cities, resolution.
++ * Replaces the old per-slug dataset list now that the store is H3-partitioned.
++ */
++export async function fetchStoreInfo(): Promise<StoreInfo> {
+   const res = await apiFetch("/api/spatial/datasets");
+-  if (!res.ok) throw new Error(`Failed to load datasets (${res.status})`);
+-  const json = await res.json();
+-  return json.datasets as Dataset[];
++  if (!res.ok) throw new Error(`Failed to load store info (${res.status})`);
++  return res.json() as Promise<StoreInfo>;
+ }
+ 
+-export async function fetchYears(slug: string): Promise<number[]> {
+-  const res = await apiFetch(`/api/spatial/years?slug=${encodeURIComponent(slug)}`);
++/** Fetch all years available in the Hive-partitioned store (no slug needed). */
++export async function fetchYears(): Promise<number[]> {
++  const res = await apiFetch("/api/spatial/years");
+   if (!res.ok) throw new Error(`Failed to load years (${res.status})`);
+   const json = await res.json();
+   return json.years as number[];
+ }
+ 
+-export async function queryMap(slug: string, bbox: BBox, years?: number[]): Promise<MapResult> {
++/** BBOX → map payload (H3 cell array for deck.gl). No slug — the store is global. */
++export async function queryMap(bbox: BBox, years?: number[]): Promise<MapResult> {
+   const res = await apiFetch("/api/spatial/query", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+-      slug,
+       min_lat: bbox.minLat,
+       min_lon: bbox.minLon,
+       max_lat: bbox.maxLat,
+@@ -123,12 +182,12 @@ export async function queryMap(slug: string, bbox: BBox, years?: number[]): Prom
+   return res.json();
+ }
+ 
+-export async function queryAnalytics(slug: string, bbox: BBox, years?: number[]): Promise<AnalyticsResult> {
++/** BBOX → analytics payload (aggregated km² stats). No slug — the store is global. */
++export async function queryAnalytics(bbox: BBox, years?: number[]): Promise<AnalyticsResult> {
+   const res = await apiFetch("/api/spatial/query", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+-      slug,
+       min_lat: bbox.minLat,
+       min_lon: bbox.minLon,
+       max_lat: bbox.maxLat,
+diff --git a/src/pages/platform/UnifiedMap.tsx b/src/pages/platform/UnifiedMap.tsx
+index 65b38c6..24fe53f 100644
+--- a/src/pages/platform/UnifiedMap.tsx
++++ b/src/pages/platform/UnifiedMap.tsx
+@@ -1,12 +1,12 @@
+ import React, { useCallback, useEffect, useRef, useState } from "react";
+-import DeckGL from "@deck.gl/react";
+ import { BitmapLayer, PolygonLayer } from "@deck.gl/layers";
+ import { H3HexagonLayer } from "@deck.gl/geo-layers";
+ import type { MapViewState } from "@deck.gl/core";
+-import { Map } from "react-map-gl/maplibre";
++import { Map, useControl } from "react-map-gl/maplibre";
++import { MapboxOverlay } from "@deck.gl/mapbox";
+ import "maplibre-gl/dist/maplibre-gl.css";
+ import type { MapRef } from "react-map-gl/maplibre";
+-import { makeColorScale } from "../expansion/lib";
++import { firstBuiltYear, makeYearColorScale } from "../expansion/lib";
+ import type { BBox, H3Cell } from "../expansion/lib";
+ import {
+   BASEMAP_STYLES,
+@@ -29,6 +29,14 @@ function bboxPolygon([minLat, minLon, maxLat, maxLon]: [number, number, number,
+   ];
+ }
+ 
++import type { MapboxOverlayProps } from "@deck.gl/mapbox";
++
++function DeckGLOverlay(props: MapboxOverlayProps & { interleaved?: boolean }) {
++  const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay(props));
++  overlay.setProps(props);
++  return null;
++}
++
+ type UnifiedMapProps = {
+   mapLayers: LayerDef[];
+   updateLayer: <K extends LayerKind>(id: string, kind: K, update: LayerPatch<K>) => void;
+@@ -84,6 +92,19 @@ export default function UnifiedMap({
+   const hideTimerRef = useRef<number | null>(null);
+   const [selBoxVisible, setSelBoxVisible] = useState(true);
+ 
++  // First symbol layer ID for interleaving under labels
++  const [firstSymbolId, setFirstSymbolId] = useState<string | undefined>(undefined);
++
++  const handleMapLoad = useCallback((e: { target: unknown }) => {
++    const map = e.target as { getStyle: () => { layers?: { type: string; id: string }[] } };
++    if (!map) return;
++    const style = map.getStyle();
++    if (style && style.layers) {
++      const firstSymbol = style.layers.find((l: { type: string; id: string }) => l.type === "symbol");
++      if (firstSymbol) setFirstSymbolId(firstSymbol.id);
++    }
++  }, []);
++
+   // Sync external coordinate/zoom → viewState (e.g. copilot navigation)
+   useEffect(() => {
+     if (isUserPanning.current) { isUserPanning.current = false; return; }
+@@ -167,24 +188,33 @@ export default function UnifiedMap({
+           image: layer.url,
+           bounds: layer.bbox as [number, number, number, number],
+           opacity: layer.opacity,
++          // @ts-expect-error deck.gl mapbox overlay supports beforeId
++          beforeId: firstSymbolId,
+         })
+       );
+     } else if (layer.kind === "expansion" && layer.cells.length > 0) {
+       const selectedYear = layer.years[layer.selectedYearIdx] ?? null;
+-      const maxVal = selectedYear
+-        ? layer.cells.reduce(
+-            (m, c) => Math.max(m, (c[`built_${selectedYear}_km2`] as number) ?? 0),
+-            0
+-          )
+-        : 0;
+-      const colorFn = makeColorScale(maxVal);
++      const colorFn = makeYearColorScale(layer.years);
++      // Cumulative display: each cell is colored by the first year it became
++      // built-up (not the selected year's value). Cells first urbanised after
++      // the selected year are hidden (transparent) so the slider shows
++      // accumulated growth up to that point — older cells are never obscured
++      // by newer ones.
+       deckLayers.push(
+         new H3HexagonLayer<H3Cell>({
+           id: `h3-${layer.id}`,
+           data: layer.cells,
+           getHexagon: (d) => d.h3_id as string,
+-          getFillColor: (d) =>
+-            selectedYear ? colorFn((d[`built_${selectedYear}_km2`] as number) ?? 0) : [0, 0, 0, 0],
++          getFillColor: (d) => {
++            const fy = firstBuiltYear(d, layer.years);
++            if (fy === null) return [0, 0, 0, 0];
++            const isCumulative = layer.cumulativeMode !== false;
++            if (selectedYear !== null) {
++              if (isCumulative && fy > selectedYear) return [0, 0, 0, 0];
++              if (!isCumulative && fy !== selectedYear) return [0, 0, 0, 0];
++            }
++            return colorFn(fy);
++          },
+           getElevation: 0,
+           extruded: false,
+           filled: true,
+@@ -193,7 +223,9 @@ export default function UnifiedMap({
+           pickable: true,
+           autoHighlight: true,
+           highlightColor: [255, 255, 255, 60],
+-          updateTriggers: { getFillColor: [selectedYear, maxVal] },
++          updateTriggers: { getFillColor: [layer.years, selectedYear, layer.cumulativeMode] },
++          // @ts-expect-error deck.gl mapbox overlay supports beforeId
++          beforeId: firstSymbolId,
+         })
+       );
+     }
+@@ -222,6 +254,8 @@ export default function UnifiedMap({
+         lineWidthUnits: "pixels",
+         stroked: true,
+         filled: true,
++        // @ts-expect-error deck.gl mapbox overlay supports beforeId
++        beforeId: firstSymbolId,
+       })
+     );
+   }
+@@ -241,25 +275,23 @@ export default function UnifiedMap({
+       onMouseMove={handleMouseMove}
+       onMouseUp={handleMouseUp}
+     >
+-      <DeckGL
+-        viewState={viewState}
+-        onViewStateChange={handleViewStateChange as Parameters<typeof DeckGL>[0]["onViewStateChange"]}
+-        controller={drawMode ? false : { dragPan: true, scrollZoom: true, doubleClickZoom: true }}
+-        layers={deckLayers as Parameters<typeof DeckGL>[0]["layers"]}
+-        style={{
+-          position: "absolute",
+-          top: "0px",
+-          right: "0px",
+-          bottom: "0px",
+-          left: "0px",
+-        }}
++      <Map
++        ref={mapRef}
++        reuseMaps
++        mapStyle={isDarkMode ? BASEMAP_STYLES.dark : BASEMAP_STYLES.light}
++        longitude={viewState.longitude}
++        latitude={viewState.latitude}
++        zoom={viewState.zoom}
++        pitch={viewState.pitch}
++        bearing={viewState.bearing}
++        onMove={(evt) => handleViewStateChange({ viewState: evt.viewState })}
++        onLoad={handleMapLoad}
++        scrollZoom={!drawMode}
++        dragPan={!drawMode}
++        doubleClickZoom={!drawMode}
+       >
+-        <Map
+-          ref={mapRef}
+-          reuseMaps
+-          mapStyle={isDarkMode ? BASEMAP_STYLES.dark : BASEMAP_STYLES.light}
+-        />
+-      </DeckGL>
++        <DeckGLOverlay layers={deckLayers} interleaved={true} />
++      </Map>
+ 
+       {/* Imagery selection box + crosshair */}
+       {showSelectionBox && (
+diff --git a/src/pages/platform/hooks/useExpansionPipeline.ts b/src/pages/platform/hooks/useExpansionPipeline.ts
+index bde1309..d584358 100644
+--- a/src/pages/platform/hooks/useExpansionPipeline.ts
++++ b/src/pages/platform/hooks/useExpansionPipeline.ts
+@@ -1,5 +1,5 @@
+ import { useCallback, useEffect, useMemo, useState } from "react";
+-import { fetchDatasets, queryAnalytics, queryMap } from "../../expansion/lib";
++import { fetchStoreInfo, queryAnalytics, queryMap } from "../../expansion/lib";
+ import type { AnalyticsResult, BBox, Dataset } from "../../expansion/lib";
+ import type { LayerDef } from "../layers";
+ 
+@@ -24,8 +24,12 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
+   useEffect(() => {
+     if (mode !== "expansion" || datasets.length > 0) return;
+     setDatasetsLoading(true);
+-    fetchDatasets()
+-      .then((ds) => {
++    fetchStoreInfo()
++      .then((info) => {
++        const ds = info.cities.map(c => ({
++          slug: c.city_slug,
++          display_name: c.city_slug.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
++        }));
+         setDatasets(ds);
+         if (ds.length > 0) setSelectedSlug(ds[0].slug);
+       })
+@@ -50,8 +54,8 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
+       setExpBbox(bboxTuple);
+       try {
+         const [mapResult, analyticsResult] = await Promise.all([
+-          queryMap(selectedSlug, newBbox),
+-          queryAnalytics(selectedSlug, newBbox),
++          queryMap(newBbox),
++          queryAnalytics(newBbox),
+         ]);
+         if (mapResult.status === "empty") {
+           setExpError("No data in this region. Check the dataset AOI.");
+diff --git a/src/pages/platform/layers.ts b/src/pages/platform/layers.ts
+index 54de330..df53d15 100644
+--- a/src/pages/platform/layers.ts
++++ b/src/pages/platform/layers.ts
+@@ -26,6 +26,7 @@ export type ExpansionLayerDef = {
+   years: number[];
+   selectedYearIdx: number;
+   bbox: [number, number, number, number] | null;
++  cumulativeMode?: boolean;
+ };
+ 
+ export type LayerDef = ImageryLayerDef | ExpansionLayerDef;
+diff --git a/src/pages/platform/panels/ChatPanel.tsx b/src/pages/platform/panels/ChatPanel.tsx
+index 62b9dff..a50c7c9 100644
+--- a/src/pages/platform/panels/ChatPanel.tsx
++++ b/src/pages/platform/panels/ChatPanel.tsx
+@@ -76,22 +76,22 @@ export default function ChatPanel({
+     <div className="flex-1 min-h-0 flex flex-col h-full bg-background">
+       <div className="px-4 py-3 border-b border-border bg-card flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+         <div
+-          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
++          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-primary/10 text-primary border-primary/20"
+         >
+           <Crosshair size={12} /> {coordinates.lat.toFixed(2)}, {coordinates.lng.toFixed(2)}
+         </div>
+         <div
+-          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
++          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-primary/10 text-primary border-primary/20"
+         >
+           <Maximize size={12} /> {areaSize}km²
+         </div>
+         <div
+-          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
++          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-primary/10 text-primary border-primary/20"
+         >
+           <CloudRain size={12} /> {cloudCover}%
+         </div>
+         <div
+-          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border-fuchsia-500/30"
++          className="px-2 py-1.5 rounded flex items-center gap-1.5 border bg-primary/10 text-primary border-primary/20"
+         >
+           <Activity size={12} /> {band}
+         </div>
+@@ -100,8 +100,8 @@ export default function ChatPanel({
+       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+         {messages.length === 0 && (
+           <div className="h-full flex flex-col items-center justify-center text-center space-y-6 text-muted-foreground px-4">
+-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-500/10 to-emerald-600/10 flex items-center justify-center mb-2 shadow-sm border border-teal-500/20">
+-              <Sparkles className="text-teal-600 dark:text-teal-400" size={28} />
++            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 shadow-sm border border-primary/20">
++              <Sparkles className="text-primary" size={28} />
+             </div>
+             <div className="space-y-1">
+               <h3 className="font-semibold text-foreground">Spatial Copilot</h3>
+@@ -110,15 +110,15 @@ export default function ChatPanel({
+ 
+             <div className="flex flex-wrap gap-2 justify-center w-full max-w-[280px]">
+               {[
+-                { label: "Show me New York", icon: <Map size={12} /> },
+-                { label: "Run analysis here", icon: <Play size={12} /> },
+-                { label: "Less cloud cover", icon: <CloudRain size={12} /> }
++                { label: "Compare Austin vs. Dallas", icon: <Map size={12} /> },
++                { label: "Find growth in Nashik", icon: <Map size={12} /> },
++                { label: "Show recent expansions", icon: <Activity size={12} /> }
+               ].map(chip => (
+                 <button
+                   key={chip.label}
+                   type="button"
+                   onClick={() => onPromptClick(chip.label)}
+-                  className="text-xs px-3 py-2 bg-muted/50 hover:bg-teal-500/10 hover:text-teal-600 border border-border hover:border-teal-500/30 rounded-full transition-all flex items-center gap-1.5 shadow-sm"
++                  className="text-xs px-3 py-2 bg-card hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 rounded-full transition-all flex items-center gap-1.5 shadow-sm"
+                 >
+                   {chip.icon} {chip.label}
+                 </button>
+@@ -135,8 +135,8 @@ export default function ChatPanel({
+             <div
+               className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${
+                 msg.role === "user"
+-                  ? "bg-gradient-to-br from-slate-600 to-slate-700 text-white"
+-                  : "bg-gradient-to-br from-teal-500 to-emerald-600 text-white"
++                  ? "bg-foreground text-background"
++                  : "bg-primary text-primary-foreground"
+               }`}
+             >
+               {msg.role === "user" ? <User size={14} /> : <Bot size={14} />}
+@@ -151,7 +151,7 @@ export default function ChatPanel({
+                       key={`${msg.id}-text-${i}`}
+                       className={`p-3 rounded-2xl text-sm whitespace-pre-wrap shadow-sm ${
+                         msg.role === "user"
+-                          ? "bg-gradient-to-br from-teal-600 to-emerald-600 text-white rounded-tr-none"
++                          ? "bg-primary text-primary-foreground rounded-tr-none"
+                           : "bg-card text-card-foreground border border-border rounded-tl-none"
+                       }`}
+                     >
+@@ -169,7 +169,7 @@ export default function ChatPanel({
+                     return (
+                       <div key={`${msg.id}-tool-${i}`} className="text-xs p-3 rounded-xl border border-border bg-muted/30 shadow-sm flex flex-col gap-2">
+                         <div className="flex items-center gap-2 font-medium text-foreground">
+-                          <Crosshair size={14} className="text-emerald-500" />
++                          <Crosshair size={14} className="text-primary" />
+                           Updating map parameters
+                         </div>
+                         <div className="text-muted-foreground flex flex-col gap-0.5">
+@@ -184,7 +184,7 @@ export default function ChatPanel({
+                     return (
+                       <div key={`${msg.id}-tool-${i}`} className="text-xs p-3 rounded-xl border border-border bg-muted/30 shadow-sm flex flex-col gap-2">
+                         <div className="flex items-center gap-2 font-medium text-foreground">
+-                          <Play size={14} className="text-amber-500" />
++                          <Play size={14} className="text-primary" />
+                           Triggering Spatial Analysis
+                         </div>
+                         <div className="text-muted-foreground">
+@@ -211,10 +211,10 @@ export default function ChatPanel({
+         <button
+           onClick={onRetrieve}
+           disabled={isLoading}
+-          className={`w-full py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-lg ${
++          className={`w-full py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-sm ${
+             isLoading
+               ? "bg-muted text-muted-foreground cursor-not-allowed"
+-              : "bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white"
++              : "bg-primary hover:bg-primary/90 text-primary-foreground"
+           }`}
+         >
+           {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} fill="currentColor" />}
+@@ -227,12 +227,12 @@ export default function ChatPanel({
+             onChange={(e) => setChatInput(e.target.value)}
+             disabled={isChatTyping}
+             placeholder="Tell AI what to map..."
+-            className="w-full border border-input bg-background rounded-full py-3 pl-5 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all"
++            className="w-full border border-input bg-background rounded-full py-3 pl-5 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+           />
+           <button
+             type="submit"
+             disabled={isChatTyping}
+-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-br from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-full transition-all shadow-md"
++            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-full transition-all shadow-sm"
+           >
+             <Send size={14} />
+           </button>
+diff --git a/src/pages/platform/panels/ExpansionControlsPanel.tsx b/src/pages/platform/panels/ExpansionControlsPanel.tsx
+index f5ca11f..3f51705 100644
+--- a/src/pages/platform/panels/ExpansionControlsPanel.tsx
++++ b/src/pages/platform/panels/ExpansionControlsPanel.tsx
+@@ -1,8 +1,10 @@
+ import type { Dispatch, SetStateAction } from "react";
+ import { Activity, Crosshair, Hexagon, Loader2, Satellite } from "lucide-react";
+ import StatsPanel from "../../expansion/StatsPanel";
++import YearSlider from "../../expansion/YearSlider";
++import Legend from "../../expansion/Legend";
+ import type { AnalyticsResult, Dataset } from "../../expansion/lib";
+-import type { LayerDef } from "../layers";
++import type { LayerDef, LayerKind, LayerPatch } from "../layers";
+ 
+ type Props = {
+   mode: "imagery" | "expansion";
+@@ -20,6 +22,7 @@ type Props = {
+   expSelectedYear: number | undefined;
+   mapLayers: LayerDef[];
+   hasCellsOrBbox: boolean;
++  updateLayer: <K extends LayerKind>(id: string, kind: K, update: LayerPatch<K>) => void;
+ };
+ 
+ export default function ExpansionControlsPanel({
+@@ -38,6 +41,7 @@ export default function ExpansionControlsPanel({
+   expSelectedYear,
+   mapLayers,
+   hasCellsOrBbox,
++  updateLayer,
+ }: Props) {
+   return (
+     <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6 bg-background">
+@@ -46,27 +50,27 @@ export default function ExpansionControlsPanel({
+           onClick={() => setMode("imagery")}
+           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+             mode === "imagery"
+-              ? "bg-teal-600 text-white"
++              ? "bg-primary text-primary-foreground"
+               : "text-muted-foreground hover:text-foreground"
+           }`}
+         >
+-          <Satellite size={12} /> Imagery
++          <Satellite size={12} /> Satellite Imagery
+         </button>
+         <button
+           onClick={() => setMode("expansion")}
+           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+             mode === "expansion"
+-              ? "bg-teal-600 text-white"
++              ? "bg-primary text-primary-foreground"
+               : "text-muted-foreground hover:text-foreground"
+           }`}
+         >
+-          <Hexagon size={12} /> Expansion
++          <Hexagon size={12} /> Urban Expansion
+         </button>
+       </div>
+ 
+       <div>
+         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
+-          <Hexagon size={14} className="text-orange-500" /> Dataset
++          <Hexagon size={14} className="text-primary" /> Dataset
+         </label>
+         {datasetsLoading ? (
+           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+@@ -94,7 +98,7 @@ export default function ExpansionControlsPanel({
+ 
+       <div>
+         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
+-          <Crosshair size={14} className="text-emerald-500" /> Bounding Box
++          <Crosshair size={14} className="text-primary" /> Bounding Box
+         </label>
+         <div className="grid grid-cols-2 gap-2">
+           <button
+@@ -102,7 +106,7 @@ export default function ExpansionControlsPanel({
+             disabled={!selectedSlug || datasetsLoading}
+             className={`px-3 py-2.5 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-40 ${
+               drawMode
+-                ? "bg-teal-500/10 border-teal-500 text-teal-600 dark:text-teal-400"
++                ? "bg-primary/10 border-primary text-primary"
+                 : "bg-card border-border text-card-foreground hover:bg-accent"
+             }`}
+           >
+@@ -117,7 +121,7 @@ export default function ExpansionControlsPanel({
+           </button>
+         </div>
+         {drawMode && (
+-          <p className="text-[10px] mt-2 leading-relaxed text-teal-600 dark:text-teal-400">
++          <p className="text-[10px] mt-2 leading-relaxed text-primary">
+             Drag on the map to draw a bounding box, then release to query.
+           </p>
+         )}
+@@ -130,16 +134,61 @@ export default function ExpansionControlsPanel({
+ 
+       <div>
+         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
+-          <Activity size={14} className="text-orange-500" /> Statistics
++          <Activity size={14} className="text-primary" /> Statistics
+         </label>
+         <StatsPanel analytics={expAnalytics} selectedYear={expSelectedYear} loading={expLoading} />
+       </div>
+ 
+-      {mapLayers.some((l) => l.kind === "expansion") && (
+-        <p className="text-[10px] leading-relaxed text-muted-foreground">
+-          Year slider and color scale are in the <strong className="text-foreground">Layers</strong> tab.
+-        </p>
+-      )}
++      {(() => {
++        const expansionLayer = mapLayers.find((l) => l.kind === "expansion");
++        if (expansionLayer && expansionLayer.kind === "expansion" && expansionLayer.years.length > 0) {
++          return (
++            <div className="flex flex-col gap-3 mt-2 border-t border-border pt-4">
++              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
++                <Activity size={14} className="text-primary" /> Timeline & Legend
++              </label>
++              <div className="flex bg-card border border-border rounded-lg overflow-hidden text-xs font-semibold mb-2">
++                <button
++                  className={`flex-1 py-1.5 transition-colors ${
++                    expansionLayer.cumulativeMode !== false
++                      ? "bg-primary text-primary-foreground"
++                      : "text-muted-foreground hover:bg-accent"
++                  }`}
++                  onClick={() =>
++                    updateLayer(expansionLayer.id, expansionLayer.kind, { cumulativeMode: true })
++                  }
++                >
++                  Cumulative Growth
++                </button>
++                <button
++                  className={`flex-1 py-1.5 transition-colors ${
++                    expansionLayer.cumulativeMode === false
++                      ? "bg-primary text-primary-foreground"
++                      : "text-muted-foreground hover:bg-accent"
++                  }`}
++                  onClick={() =>
++                    updateLayer(expansionLayer.id, expansionLayer.kind, { cumulativeMode: false })
++                  }
++                >
++                  Single Year
++                </button>
++              </div>
++              <YearSlider
++                years={expansionLayer.years}
++                yearIdx={expansionLayer.selectedYearIdx}
++                onYearIdx={(idx) =>
++                  updateLayer(expansionLayer.id, expansionLayer.kind, {
++                    selectedYearIdx:
++                      typeof idx === "function" ? idx(expansionLayer.selectedYearIdx) : idx,
++                  })
++                }
++              />
++              <Legend years={expansionLayer.years} />
++            </div>
++          );
++        }
++        return null;
++      })()}
+     </div>
+   );
+ }
+diff --git a/src/pages/platform/panels/ImageryControlsPanel.tsx b/src/pages/platform/panels/ImageryControlsPanel.tsx
+index 7f7663a..edc2b11 100644
+--- a/src/pages/platform/panels/ImageryControlsPanel.tsx
++++ b/src/pages/platform/panels/ImageryControlsPanel.tsx
+@@ -43,27 +43,27 @@ export default function ImageryControlsPanel({
+           onClick={() => setMode("imagery")}
+           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold ${
+             mode === "imagery"
+-              ? "bg-teal-600 text-white"
++              ? "bg-primary text-primary-foreground"
+               : "text-muted-foreground hover:text-foreground"
+           }`}
+         >
+-          <Satellite size={12} /> Imagery
++          <Satellite size={12} /> Satellite Imagery
+         </button>
+         <button
+           onClick={() => setMode("expansion")}
+           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+             mode === "expansion"
+-              ? "bg-teal-600 text-white"
++              ? "bg-primary text-primary-foreground"
+               : "text-muted-foreground hover:text-foreground"
+           }`}
+         >
+-          <Hexagon size={12} /> Expansion
++          <Hexagon size={12} /> Urban Expansion
+         </button>
+       </div>
+ 
+       <div>
+         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
+-          <Crosshair size={14} className="text-emerald-500" /> Center Coordinates
++          <Crosshair size={14} className="text-primary" /> Center Coordinates
+         </label>
+         <div className="flex gap-2">
+           <input
+@@ -112,10 +112,10 @@ export default function ImageryControlsPanel({
+       <div>
+         <div className="flex justify-between items-center mb-2">
+           <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+-            <Maximize size={14} className="text-amber-500" /> Area Extent
++            <Maximize size={14} className="text-primary" /> Area Extent
+           </label>
+-          <span className="text-xs font-bold px-2.5 py-1 rounded-md border text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30">
+-            {areaSize} km²
++          <span className="text-xs font-bold px-2.5 py-1 rounded-md border text-primary bg-primary/10 border-primary/30">
++            {areaSize} km² ({areaSize === 1 ? "1x1 km" : areaSize === 4 ? "2x2 km" : areaSize === 25 ? "5x5 km" : "10x10 km"})
+           </span>
+         </div>
+         <select
+@@ -138,9 +138,9 @@ export default function ImageryControlsPanel({
+       <div>
+         <div className="flex justify-between items-center mb-2">
+           <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+-            <CloudRain size={14} className="text-sky-500" /> Max Cloud Cover
++            <CloudRain size={14} className="text-primary" /> Max Cloud Cover
+           </label>
+-          <span className="text-xs font-bold px-2.5 py-1 rounded-md border text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/30">
++          <span className="text-xs font-bold px-2.5 py-1 rounded-md border text-primary bg-primary/10 border-primary/30">
+             {cloudCover}%
+           </span>
+         </div>
+@@ -150,13 +150,13 @@ export default function ImageryControlsPanel({
+           max="100"
+           value={cloudCover}
+           onChange={(e) => setCloudCover(parseInt(e.target.value, 10))}
+-          className="w-full accent-sky-500 h-1.5 rounded-lg appearance-none cursor-pointer bg-muted"
++          className="w-full accent-primary h-1.5 rounded-lg appearance-none cursor-pointer bg-muted"
+         />
+       </div>
+ 
+       <div>
+         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
+-          <Activity size={14} className="text-fuchsia-500" /> Spectral Band
++          <Activity size={14} className="text-primary" /> Spectral Band
+         </label>
+         <select
+           value={band}
+@@ -172,13 +172,13 @@ export default function ImageryControlsPanel({
+       <button
+         onClick={onRetrieve}
+         disabled={isLoading}
+-        className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-md ${
++        className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-sm ${
+           isLoading
+             ? "bg-muted text-muted-foreground cursor-not-allowed"
+             : "bg-card hover:bg-accent text-card-foreground border border-border"
+         }`}
+       >
+-        {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Play size={18} className="text-teal-500" />}
++        {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Play size={18} className="text-primary" />}
+         {isLoading ? "Processing..." : "Manual Execute"}
+       </button>
+     </div>
+diff --git a/src/pages/platform/panels/InsightsPanel.tsx b/src/pages/platform/panels/InsightsPanel.tsx
+index 72d3fa5..e1ac73d 100644
+--- a/src/pages/platform/panels/InsightsPanel.tsx
++++ b/src/pages/platform/panels/InsightsPanel.tsx
+@@ -19,10 +19,10 @@ export default function InsightsPanel({
+         <button
+           onClick={onGenerateInsights}
+           disabled={!hasOverlay || isGeneratingInsights}
+-          className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-md ${
++          className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-sm ${
+             !hasOverlay
+               ? "bg-muted text-muted-foreground cursor-not-allowed border border-border"
+-              : "bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white shadow-[0_0_20px_rgba(20,184,166,0.3)]"
++              : "bg-primary hover:bg-primary/90 text-primary-foreground"
+           }`}
+         >
+           {isGeneratingInsights ? (
+@@ -35,23 +35,31 @@ export default function InsightsPanel({
+       </div>
+       <div className="flex-1 min-h-0 overflow-y-auto p-6 text-sm leading-relaxed">
+         {isGeneratingInsights ? (
+-          <div className="flex flex-col items-center justify-center h-full space-y-4 text-teal-600 dark:text-teal-400">
++          <div className="flex flex-col items-center justify-center h-full space-y-4 text-primary">
+             <Loader2 className="animate-spin" size={28} />
+             <p className="animate-pulse font-medium tracking-wide">
+               Synthesizing spatial context...
+             </p>
+           </div>
+         ) : insights ? (
+-          <div className="whitespace-pre-wrap p-5 rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
+-            {insights}
++          <div className="flex flex-col gap-4">
++            <div className="whitespace-pre-wrap p-5 rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
++              {insights}
++            </div>
++            <button
++              onClick={() => window.print()}
++              className="w-full py-2.5 rounded-xl border border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground flex items-center justify-center gap-2 font-semibold transition-colors shadow-sm"
++            >
++              Export Report
++            </button>
+           </div>
+         ) : (
+           <div className="flex flex-col items-center justify-center h-full space-y-3 text-center text-muted-foreground">
+             <div className="p-4 rounded-full mb-2 bg-muted">
+-              <Sparkles size={28} className="text-teal-400 opacity-80" />
++              <Sparkles size={28} className="text-primary opacity-80" />
+             </div>
+-            <p className="max-w-[200px] leading-relaxed">
+-              Awaiting map data to generate detailed report.
++            <p className="max-w-[220px] leading-relaxed">
++              Run a Spatial Analysis in the Copilot chat to generate a comprehensive AI report for this region.
+             </p>
+           </div>
+         )}
+diff --git a/src/pages/platform/panels/LayersPanel.tsx b/src/pages/platform/panels/LayersPanel.tsx
+index b37d932..bb02bca 100644
+--- a/src/pages/platform/panels/LayersPanel.tsx
++++ b/src/pages/platform/panels/LayersPanel.tsx
+@@ -1,6 +1,4 @@
+ import { Eye, EyeOff, Hexagon, Layers, Satellite, X } from "lucide-react";
+-import Legend from "../../expansion/Legend";
+-import YearSlider from "../../expansion/YearSlider";
+ import type { LayerDef, LayerKind, LayerPatch } from "../layers";
+ 
+ type Props = {
+@@ -25,7 +23,7 @@ export default function LayersPanel({
+       {mapLayers.length === 0 ? (
+         <div className="flex flex-col items-center justify-center h-full gap-3 text-center text-muted-foreground">
+           <div className="p-4 rounded-full bg-muted">
+-            <Layers size={28} className="text-teal-400 opacity-70" />
++            <Layers size={28} className="text-primary opacity-70" />
+           </div>
+           <p className="text-xs max-w-[200px] leading-relaxed">
+             No layers yet. Run Spatial Analysis or query Urban Expansion to add layers.
+@@ -41,7 +39,7 @@ export default function LayersPanel({
+           >
+             <div className="flex items-center gap-2">
+               {layer.kind === "imagery" ? (
+-                <Satellite size={13} className="text-teal-400 shrink-0" />
++                <Satellite size={13} className="text-primary shrink-0" />
+               ) : (
+                 <Hexagon size={13} className="text-orange-400 shrink-0" />
+               )}
+@@ -84,7 +82,7 @@ export default function LayersPanel({
+                       opacity: Number(e.target.value),
+                     })
+                   }
+-                  className="flex-1 accent-teal-500 h-1.5 rounded-lg appearance-none cursor-pointer"
++                  className="flex-1 accent-primary h-1.5 rounded-lg appearance-none cursor-pointer bg-muted"
+                 />
+                 <span
+                   className="text-[10px] w-7 text-right shrink-0 text-muted-foreground"
+@@ -94,30 +92,7 @@ export default function LayersPanel({
+               </div>
+             )}
+ 
+-            {layer.kind === "expansion" && layer.years.length > 0 && (
+-              <div className="flex flex-col gap-2">
+-                <YearSlider
+-                  years={layer.years}
+-                  yearIdx={layer.selectedYearIdx}
+-                  onYearIdx={(idx) =>
+-                    updateLayer(layer.id, layer.kind, {
+-                      selectedYearIdx:
+-                        typeof idx === "function" ? idx(layer.selectedYearIdx) : idx,
+-                    })
+-                  }
+-                />
+-                {(() => {
+-                  const yr = layer.years[layer.selectedYearIdx] ?? null;
+-                  const maxVal = yr
+-                    ? layer.cells.reduce(
+-                        (m, c) => Math.max(m, (c[`built_${yr}_km2`] as number) ?? 0),
+-                        0
+-                      )
+-                    : 0;
+-                  return maxVal > 0 ? <Legend maxValue={maxVal} /> : null;
+-                })()}
+-              </div>
+-            )}
++            {/* Timeline and Legend moved to ExpansionControlsPanel */}
+           </div>
+         ))
+       )}
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index 6f49ca2..46b3c03 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -15,7 +15,7 @@ export default {
+     },
+     extend: {
+       fontFamily: {
+-        sans: ["Inter", "system-ui", "sans-serif"],
++        sans: ["Sen", "system-ui", "sans-serif"],
+       },
+       colors: {
+         border: "hsl(var(--border))",

@@ -1,8 +1,10 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Activity, Crosshair, Hexagon, Loader2, Satellite } from "lucide-react";
 import StatsPanel from "../../expansion/StatsPanel";
+import YearSlider from "../../expansion/YearSlider";
+import Legend from "../../expansion/Legend";
 import type { AnalyticsResult, Dataset } from "../../expansion/lib";
-import type { LayerDef } from "../layers";
+import type { LayerDef, LayerKind, LayerPatch } from "../layers";
 
 type Props = {
   mode: "imagery" | "expansion";
@@ -20,6 +22,7 @@ type Props = {
   expSelectedYear: number | undefined;
   mapLayers: LayerDef[];
   hasCellsOrBbox: boolean;
+  updateLayer: <K extends LayerKind>(id: string, kind: K, update: LayerPatch<K>) => void;
 };
 
 export default function ExpansionControlsPanel({
@@ -38,6 +41,7 @@ export default function ExpansionControlsPanel({
   expSelectedYear,
   mapLayers,
   hasCellsOrBbox,
+  updateLayer,
 }: Props) {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-6 bg-background">
@@ -46,27 +50,27 @@ export default function ExpansionControlsPanel({
           onClick={() => setMode("imagery")}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
             mode === "imagery"
-              ? "bg-teal-600 text-white"
+              ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Satellite size={12} /> Imagery
+          <Satellite size={12} /> Satellite Imagery
         </button>
         <button
           onClick={() => setMode("expansion")}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
             mode === "expansion"
-              ? "bg-teal-600 text-white"
+              ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Hexagon size={12} /> Expansion
+          <Hexagon size={12} /> Urban Expansion
         </button>
       </div>
 
       <div>
         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
-          <Hexagon size={14} className="text-orange-500" /> Dataset
+          <Hexagon size={14} className="text-primary" /> Dataset
         </label>
         {datasetsLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -94,7 +98,7 @@ export default function ExpansionControlsPanel({
 
       <div>
         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
-          <Crosshair size={14} className="text-emerald-500" /> Bounding Box
+          <Crosshair size={14} className="text-primary" /> Bounding Box
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -102,7 +106,7 @@ export default function ExpansionControlsPanel({
             disabled={!selectedSlug || datasetsLoading}
             className={`px-3 py-2.5 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-40 ${
               drawMode
-                ? "bg-teal-500/10 border-teal-500 text-teal-600 dark:text-teal-400"
+                ? "bg-primary/10 border-primary text-primary"
                 : "bg-card border-border text-card-foreground hover:bg-accent"
             }`}
           >
@@ -117,7 +121,7 @@ export default function ExpansionControlsPanel({
           </button>
         </div>
         {drawMode && (
-          <p className="text-[10px] mt-2 leading-relaxed text-teal-600 dark:text-teal-400">
+          <p className="text-[10px] mt-2 leading-relaxed text-primary">
             Drag on the map to draw a bounding box, then release to query.
           </p>
         )}
@@ -130,16 +134,61 @@ export default function ExpansionControlsPanel({
 
       <div>
         <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider text-muted-foreground">
-          <Activity size={14} className="text-orange-500" /> Statistics
+          <Activity size={14} className="text-primary" /> Statistics
         </label>
         <StatsPanel analytics={expAnalytics} selectedYear={expSelectedYear} loading={expLoading} />
       </div>
 
-      {mapLayers.some((l) => l.kind === "expansion") && (
-        <p className="text-[10px] leading-relaxed text-muted-foreground">
-          Year slider and color scale are in the <strong className="text-foreground">Layers</strong> tab.
-        </p>
-      )}
+      {(() => {
+        const expansionLayer = mapLayers.find((l) => l.kind === "expansion");
+        if (expansionLayer && expansionLayer.kind === "expansion" && expansionLayer.years.length > 0) {
+          return (
+            <div className="flex flex-col gap-3 mt-2 border-t border-border pt-4">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <Activity size={14} className="text-primary" /> Timeline & Legend
+              </label>
+              <div className="flex bg-card border border-border rounded-lg overflow-hidden text-xs font-semibold mb-2">
+                <button
+                  className={`flex-1 py-1.5 transition-colors ${
+                    expansionLayer.cumulativeMode !== false
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                  onClick={() =>
+                    updateLayer(expansionLayer.id, expansionLayer.kind, { cumulativeMode: true })
+                  }
+                >
+                  Cumulative Growth
+                </button>
+                <button
+                  className={`flex-1 py-1.5 transition-colors ${
+                    expansionLayer.cumulativeMode === false
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                  onClick={() =>
+                    updateLayer(expansionLayer.id, expansionLayer.kind, { cumulativeMode: false })
+                  }
+                >
+                  Single Year
+                </button>
+              </div>
+              <YearSlider
+                years={expansionLayer.years}
+                yearIdx={expansionLayer.selectedYearIdx}
+                onYearIdx={(idx) =>
+                  updateLayer(expansionLayer.id, expansionLayer.kind, {
+                    selectedYearIdx:
+                      typeof idx === "function" ? idx(expansionLayer.selectedYearIdx) : idx,
+                  })
+                }
+              />
+              <Legend years={expansionLayer.years} />
+            </div>
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 }

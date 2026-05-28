@@ -19,10 +19,10 @@ export default function InsightsPanel({
         <button
           onClick={onGenerateInsights}
           disabled={!hasOverlay || isGeneratingInsights}
-          className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-md ${
+          className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all text-sm shadow-sm ${
             !hasOverlay
               ? "bg-muted text-muted-foreground cursor-not-allowed border border-border"
-              : "bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white shadow-[0_0_20px_rgba(20,184,166,0.3)]"
+              : "bg-primary hover:bg-primary/90 text-primary-foreground"
           }`}
         >
           {isGeneratingInsights ? (
@@ -35,23 +35,31 @@ export default function InsightsPanel({
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-6 text-sm leading-relaxed">
         {isGeneratingInsights ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 text-teal-600 dark:text-teal-400">
+          <div className="flex flex-col items-center justify-center h-full space-y-4 text-primary">
             <Loader2 className="animate-spin" size={28} />
             <p className="animate-pulse font-medium tracking-wide">
               Synthesizing spatial context...
             </p>
           </div>
         ) : insights ? (
-          <div className="whitespace-pre-wrap p-5 rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
-            {insights}
+          <div className="flex flex-col gap-4">
+            <div className="whitespace-pre-wrap p-5 rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
+              {insights}
+            </div>
+            <button
+              onClick={() => window.print()}
+              className="w-full py-2.5 rounded-xl border border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground flex items-center justify-center gap-2 font-semibold transition-colors shadow-sm"
+            >
+              Export Report
+            </button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full space-y-3 text-center text-muted-foreground">
             <div className="p-4 rounded-full mb-2 bg-muted">
-              <Sparkles size={28} className="text-teal-400 opacity-80" />
+              <Sparkles size={28} className="text-primary opacity-80" />
             </div>
-            <p className="max-w-[200px] leading-relaxed">
-              Awaiting map data to generate detailed report.
+            <p className="max-w-[220px] leading-relaxed">
+              Run a Spatial Analysis in the Copilot chat to generate a comprehensive AI report for this region.
             </p>
           </div>
         )}

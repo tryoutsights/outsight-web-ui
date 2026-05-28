@@ -49,7 +49,7 @@ const Platform = () => {
   });
   const [activeTab, setActiveTab] = useState<ActiveTab>("chat");
   const [band, setBand] = useState<SpectralBand>("NDBI");
-  const [coordinates, setCoordinates] = useState<Coordinates>({ lat: 37.7749, lng: -122.4194 });
+  const [coordinates, setCoordinates] = useState<Coordinates>({ lat: 30.2672, lng: -97.7431 }); // Austin, TX
   const [zoom, setZoom] = useState(12);
   const [areaSize, setAreaSize] = useState(25);
   const [cloudCover, setCloudCover] = useState(20);
@@ -66,7 +66,7 @@ const Platform = () => {
   // ---------------------------------------------------------------------------
   // Mode toggle: "imagery" | "expansion"
   // ---------------------------------------------------------------------------
-  const [mode, setMode] = useState<"imagery" | "expansion">("imagery");
+  const [mode, setMode] = useState<"imagery" | "expansion">("expansion");
 
   // Layer manager (imagery + expansion layers rendered on unified map)
   const { layers: mapLayers, addLayer, removeLayer, toggleLayer, updateLayer } = useLayerManager();
@@ -145,6 +145,16 @@ const Platform = () => {
   }, [isDarkMode]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && drawMode) {
+        setDrawMode(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawMode, setDrawMode]);
+
+  useEffect(() => {
     setInsights("");
   }, [data]);
 
@@ -213,13 +223,13 @@ const Platform = () => {
         style={{ width: `${leftPanelWidth}px` }}
         className="h-full shrink-0 border-r border-border flex flex-col z-10 shadow-2xl bg-card transition-colors duration-300"
       >
-        <div className="p-5 border-b border-border flex items-center justify-between bg-gradient-to-r from-teal-500/5 to-emerald-500/5 transition-colors duration-300">
+        <div className="p-5 border-b border-border flex items-center justify-between bg-card transition-colors duration-300">
           <Link to="/" className="flex items-center gap-3 group" title="Back to home">
-            <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-2 rounded-lg text-white flex-shrink-0 shadow-md">
+            <div className="bg-primary p-2 rounded-lg text-primary-foreground flex-shrink-0 shadow-sm">
               <Satellite size={20} />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-wide leading-tight text-foreground group-hover:text-teal-500 transition-colors">
+              <h1 className="font-bold text-lg tracking-wide leading-tight text-foreground group-hover:text-primary transition-colors">
                 Outsights
               </h1>
               <p className="text-xs font-medium text-muted-foreground">
@@ -256,8 +266,8 @@ const Platform = () => {
                     : "flex-1 min-w-0 px-3 gap-2 justify-center"
                 } ${
                   isActive
-                    ? "text-teal-500 border-teal-500 bg-teal-500/10"
-                    : "text-muted-foreground border-transparent hover:text-foreground"
+                    ? "text-primary border-primary bg-primary/5"
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -302,6 +312,7 @@ const Platform = () => {
               expSelectedYear={expSelectedYear}
               mapLayers={mapLayers}
               hasCellsOrBbox={Boolean(cells.length || expBbox)}
+              updateLayer={updateLayer}
             />
           )}
 
@@ -349,7 +360,7 @@ const Platform = () => {
         aria-orientation="vertical"
         aria-label="Resize left dashboard"
         onMouseDown={startResize}
-        className="w-1 shrink-0 cursor-col-resize bg-border/80 hover:bg-teal-500/80 transition-colors"
+        className="w-1 shrink-0 cursor-col-resize bg-border/80 hover:bg-primary/80 transition-colors"
       />
 
       <div className="flex-1 relative overflow-hidden bg-background transition-colors duration-300">
@@ -373,14 +384,14 @@ const Platform = () => {
 
         {/* Band legend overlay (imagery) */}
         {hasOverlay && (
-          <div className="absolute bottom-8 right-8 backdrop-blur-md border border-border bg-card/95 p-5 rounded-2xl shadow-2xl z-[1000] transition-colors duration-300">
-            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 text-card-foreground">
-              <Activity size={14} className={band === "NDBI" ? "text-orange-500" : band === "NDVI" ? "text-emerald-500" : "text-muted-foreground"} />
+          <div className="absolute bottom-8 right-8 border border-border bg-card p-5 rounded-xl shadow-soft z-[1000] transition-colors duration-300">
+            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 text-foreground">
+              <Activity size={14} className="text-primary" />
               {band} Intensity
             </h4>
             <div className="flex items-center gap-4">
               <span className="text-xs font-semibold text-muted-foreground">Low</span>
-              <div className={`h-3 w-32 rounded-full shadow-inner ${band === "NDBI" ? "bg-gradient-to-r from-transparent via-orange-400 to-red-600" : band === "NDVI" ? "bg-gradient-to-r from-transparent via-emerald-400 to-green-700" : "bg-gradient-to-r from-muted to-foreground/60"}`} />
+              <div className="h-3 w-32 rounded-full shadow-inner bg-gradient-to-r from-transparent via-primary/50 to-primary" />
               <span className="text-xs font-semibold text-muted-foreground">High</span>
             </div>
           </div>

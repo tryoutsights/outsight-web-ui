@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { fetchDatasets, queryAnalytics, queryMap } from "../../expansion/lib";
+import { fetchStoreInfo, queryAnalytics, queryMap } from "../../expansion/lib";
 import type { AnalyticsResult, BBox, Dataset } from "../../expansion/lib";
 import type { LayerDef } from "../layers";
 
@@ -24,8 +24,12 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
   useEffect(() => {
     if (mode !== "expansion" || datasets.length > 0) return;
     setDatasetsLoading(true);
-    fetchDatasets()
-      .then((ds) => {
+    fetchStoreInfo()
+      .then((info) => {
+        const ds = info.cities.map(c => ({
+          slug: c.city_slug,
+          display_name: c.city_slug.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+        }));
         setDatasets(ds);
         if (ds.length > 0) setSelectedSlug(ds[0].slug);
       })
@@ -50,8 +54,8 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
       setExpBbox(bboxTuple);
       try {
         const [mapResult, analyticsResult] = await Promise.all([
-          queryMap(selectedSlug, newBbox),
-          queryAnalytics(selectedSlug, newBbox),
+          queryMap(newBbox),
+          queryAnalytics(newBbox),
         ]);
         if (mapResult.status === "empty") {
           setExpError("No data in this region. Check the dataset AOI.");

@@ -1,6 +1,4 @@
 import { Eye, EyeOff, Hexagon, Layers, Satellite, X } from "lucide-react";
-import Legend from "../../expansion/Legend";
-import YearSlider from "../../expansion/YearSlider";
 import type { LayerDef, LayerKind, LayerPatch } from "../layers";
 
 type Props = {
@@ -25,7 +23,7 @@ export default function LayersPanel({
       {mapLayers.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full gap-3 text-center text-muted-foreground">
           <div className="p-4 rounded-full bg-muted">
-            <Layers size={28} className="text-teal-400 opacity-70" />
+            <Layers size={28} className="text-primary opacity-70" />
           </div>
           <p className="text-xs max-w-[200px] leading-relaxed">
             No layers yet. Run Spatial Analysis or query Urban Expansion to add layers.
@@ -41,7 +39,7 @@ export default function LayersPanel({
           >
             <div className="flex items-center gap-2">
               {layer.kind === "imagery" ? (
-                <Satellite size={13} className="text-teal-400 shrink-0" />
+                <Satellite size={13} className="text-primary shrink-0" />
               ) : (
                 <Hexagon size={13} className="text-orange-400 shrink-0" />
               )}
@@ -84,7 +82,7 @@ export default function LayersPanel({
                       opacity: Number(e.target.value),
                     })
                   }
-                  className="flex-1 accent-teal-500 h-1.5 rounded-lg appearance-none cursor-pointer"
+                  className="flex-1 accent-primary h-1.5 rounded-lg appearance-none cursor-pointer bg-muted"
                 />
                 <span
                   className="text-[10px] w-7 text-right shrink-0 text-muted-foreground"
@@ -94,30 +92,7 @@ export default function LayersPanel({
               </div>
             )}
 
-            {layer.kind === "expansion" && layer.years.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <YearSlider
-                  years={layer.years}
-                  yearIdx={layer.selectedYearIdx}
-                  onYearIdx={(idx) =>
-                    updateLayer(layer.id, layer.kind, {
-                      selectedYearIdx:
-                        typeof idx === "function" ? idx(layer.selectedYearIdx) : idx,
-                    })
-                  }
-                />
-                {(() => {
-                  const yr = layer.years[layer.selectedYearIdx] ?? null;
-                  const maxVal = yr
-                    ? layer.cells.reduce(
-                        (m, c) => Math.max(m, (c[`built_${yr}_km2`] as number) ?? 0),
-                        0
-                      )
-                    : 0;
-                  return maxVal > 0 ? <Legend maxValue={maxVal} /> : null;
-                })()}
-              </div>
-            )}
+            {/* Timeline and Legend moved to ExpansionControlsPanel */}
           </div>
         ))
       )}

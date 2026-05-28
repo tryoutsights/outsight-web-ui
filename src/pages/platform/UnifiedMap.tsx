@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import DeckGL from "@deck.gl/react";
 import { BitmapLayer, PolygonLayer } from "@deck.gl/layers";
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import type { MapViewState } from "@deck.gl/core";
-import { Map } from "react-map-gl/maplibre";
+import { Map, useControl } from "react-map-gl/maplibre";
+import { MapboxOverlay } from "@deck.gl/mapbox";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { MapRef } from "react-map-gl/maplibre";
-import { makeColorScale } from "../expansion/lib";
+import { firstBuiltYear, makeYearColorScale } from "../expansion/lib";
 import type { BBox, H3Cell } from "../expansion/lib";
 import {
   BASEMAP_STYLES,
@@ -27,6 +27,14 @@ function bboxPolygon([minLat, minLon, maxLat, maxLon]: [number, number, number, 
     [minLon, maxLat],
     [minLon, minLat],
   ];
+}
+
+import type { MapboxOverlayProps } from "@deck.gl/mapbox";
+
+function DeckGLOverlay(props: MapboxOverlayProps & { interleaved?: boolean }) {
+  const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay(props));
+  overlay.setProps(props);
+  return null;
 }
 
 type UnifiedMapProps = {
@@ -83,6 +91,19 @@ export default function UnifiedMap({
   // Selection box visibility
   const hideTimerRef = useRef<number | null>(null);
   const [selBoxVisible, setSelBoxVisible] = useState(true);
+
+  // First symbol layer ID for interleaving under labels
+  const [firstSymbolId, setFirstSymbolId] = useState<string | undefined>(undefined);
+
+  const handleMapLoad = useCallback((e: { target: unknown }) => {
+    const map = e.target as { getStyle: () => { layers?: { type: string; id: string }[] } };
+    if (!map) return;
+    const style = map.getStyle();
+    if (style && style.layers) {
+      const firstSymbol = style.layers.find((l: { type: string; id: string }) => l.type === "symbol");
+      if (firstSymbol) setFirstSymbolId(firstSymbol.id);
+    }
+  }, []);
 
   // Sync external coordinate/zoom → viewState (e.g. copilot navigation)
   useEffect(() => {
@@ -167,24 +188,33 @@ export default function UnifiedMap({
           image: layer.url,
           bounds: layer.bbox as [number, number, number, number],
           opacity: layer.opacity,
+          // @ts-expect-error deck.gl mapbox overlay supports beforeId
+          beforeId: firstSymbolId,
         })
       );
     } else if (layer.kind === "expansion" && layer.cells.length > 0) {
       const selectedYear = layer.years[layer.selectedYearIdx] ?? null;
-      const maxVal = selectedYear
-        ? layer.cells.reduce(
-            (m, c) => Math.max(m, (c[`built_${selectedYear}_km2`] as number) ?? 0),
-            0
-          )
-        : 0;
-      const colorFn = makeColorScale(maxVal);
+      const colorFn = makeYearColorScale(layer.years);
+      // Cumulative display: each cell is colored by the first year it became
+      // built-up (not the selected year's value). Cells first urbanised after
+      // the selected year are hidden (transparent) so the slider shows
+      // accumulated growth up to that point — older cells are never obscured
+      // by newer ones.
       deckLayers.push(
         new H3HexagonLayer<H3Cell>({
           id: `h3-${layer.id}`,
           data: layer.cells,
           getHexagon: (d) => d.h3_id as string,
-          getFillColor: (d) =>
-            selectedYear ? colorFn((d[`built_${selectedYear}_km2`] as number) ?? 0) : [0, 0, 0, 0],
+          getFillColor: (d) => {
+            const fy = firstBuiltYear(d, layer.years);
+            if (fy === null) return [0, 0, 0, 0];
+            const isCumulative = layer.cumulativeMode !== false;
+            if (selectedYear !== null) {
+              if (isCumulative && fy > selectedYear) return [0, 0, 0, 0];
+              if (!isCumulative && fy !== selectedYear) return [0, 0, 0, 0];
+            }
+            return colorFn(fy);
+          },
           getElevation: 0,
           extruded: false,
           filled: true,
@@ -193,7 +223,9 @@ export default function UnifiedMap({
           pickable: true,
           autoHighlight: true,
           highlightColor: [255, 255, 255, 60],
-          updateTriggers: { getFillColor: [selectedYear, maxVal] },
+          updateTriggers: { getFillColor: [layer.years, selectedYear, layer.cumulativeMode] },
+          // @ts-expect-error deck.gl mapbox overlay supports beforeId
+          beforeId: firstSymbolId,
         })
       );
     }
@@ -222,6 +254,8 @@ export default function UnifiedMap({
         lineWidthUnits: "pixels",
         stroked: true,
         filled: true,
+        // @ts-expect-error deck.gl mapbox overlay supports beforeId
+        beforeId: firstSymbolId,
       })
     );
   }
@@ -241,25 +275,23 @@ export default function UnifiedMap({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      <DeckGL
-        viewState={viewState}
-        onViewStateChange={handleViewStateChange as Parameters<typeof DeckGL>[0]["onViewStateChange"]}
-        controller={drawMode ? false : { dragPan: true, scrollZoom: true, doubleClickZoom: true }}
-        layers={deckLayers as Parameters<typeof DeckGL>[0]["layers"]}
-        style={{
-          position: "absolute",
-          top: "0px",
-          right: "0px",
-          bottom: "0px",
-          left: "0px",
-        }}
+      <Map
+        ref={mapRef}
+        reuseMaps
+        mapStyle={isDarkMode ? BASEMAP_STYLES.dark : BASEMAP_STYLES.light}
+        longitude={viewState.longitude}
+        latitude={viewState.latitude}
+        zoom={viewState.zoom}
+        pitch={viewState.pitch}
+        bearing={viewState.bearing}
+        onMove={(evt) => handleViewStateChange({ viewState: evt.viewState })}
+        onLoad={handleMapLoad}
+        scrollZoom={!drawMode}
+        dragPan={!drawMode}
+        doubleClickZoom={!drawMode}
       >
-        <Map
-          ref={mapRef}
-          reuseMaps
-          mapStyle={isDarkMode ? BASEMAP_STYLES.dark : BASEMAP_STYLES.light}
-        />
-      </DeckGL>
+        <DeckGLOverlay layers={deckLayers} interleaved={true} />
+      </Map>
 
       {/* Imagery selection box + crosshair */}
       {showSelectionBox && (

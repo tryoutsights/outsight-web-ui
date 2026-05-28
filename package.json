@@ -17,6 +17,7 @@
     "@ai-sdk/react": "^3.0.177",
     "@deck.gl/geo-layers": "^9.3.2",
     "@deck.gl/layers": "^9.3.2",
+    "@deck.gl/mapbox": "^9.3.2",
     "@deck.gl/react": "^9.3.2",
     "@hookform/resolvers": "^3.10.0",
     "@microsoft/fetch-event-source": "^2.0.1",

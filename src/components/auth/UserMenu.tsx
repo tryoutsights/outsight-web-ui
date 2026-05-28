@@ -36,9 +36,7 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
   if (isLoading) {
     return (
       <div
-        className={`h-8 w-20 animate-pulse rounded-full ${
-          isDark ? "bg-slate-800" : "bg-slate-200"
-        }`}
+        className={`h-8 w-20 animate-pulse rounded-full bg-muted`}
         aria-hidden="true"
       />
     );
@@ -50,11 +48,7 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
         type="button"
         onClick={() => requestSignIn()}
         disabled={!isConfigured}
-        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-          isDark
-            ? "border-slate-700 bg-slate-900 text-slate-200 hover:border-teal-500 hover:text-teal-300"
-            : "border-slate-200 bg-white text-slate-700 hover:border-teal-500 hover:text-teal-600"
-        }`}
+        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 border-border bg-card text-foreground hover:border-primary hover:text-primary`}
         title={isConfigured ? "Sign in" : "Sign-in not configured"}
       >
         <LogIn size={14} />
@@ -78,23 +72,17 @@ export const UserMenu = ({ isDark = true }: UserMenuProps) => {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className={`flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors ${
-            isDark
-              ? "border-slate-700 bg-slate-900 hover:border-teal-500"
-              : "border-slate-200 bg-white hover:border-teal-500"
-          }`}
+          className={`flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors border-border bg-card hover:border-primary`}
           aria-label="Account menu"
         >
           <Avatar className="h-7 w-7">
             {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
-            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-[10px] font-bold text-white">
+            <AvatarFallback className="bg-primary text-[10px] font-bold text-primary-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
           <span
-            className={`max-w-[120px] truncate text-xs font-semibold ${
-              isDark ? "text-slate-200" : "text-slate-700"
-            }`}
+            className={`max-w-[120px] truncate text-xs font-semibold text-foreground`}
           >
             {meta.full_name ?? meta.name ?? user.email}
           </span>

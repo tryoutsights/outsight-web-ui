@@ -1,25 +1,27 @@
-import { legendStops } from "./lib";
+import { yearLegendStops } from "./lib";
 
 type Props = {
-  maxValue: number;
+  years: number[];
 };
 
-export default function Legend({ maxValue }: Props) {
-  if (!maxValue || maxValue <= 0) return null;
+export default function Legend({ years }: Props) {
+  if (!years.length) return null;
 
-  const stops = legendStops(maxValue, 6);
+  const stops = yearLegendStops(years);
   const gradient = `linear-gradient(to right, ${stops.map((s) => s.color).join(", ")})`;
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Built-up km² (year)
+        First urbanised
       </div>
       <div className="h-2.5 rounded w-full" style={{ background: gradient }} />
       <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>0</span>
-        <span>{(maxValue / 2).toFixed(3)}</span>
-        <span>{maxValue.toFixed(3)}</span>
+        <span>{stops[0].value}</span>
+        {stops.length > 2 && (
+          <span>{stops[Math.floor(stops.length / 2)].value}</span>
+        )}
+        <span>{stops[stops.length - 1].value}</span>
       </div>
     </div>
   );

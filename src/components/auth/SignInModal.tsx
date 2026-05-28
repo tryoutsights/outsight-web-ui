@@ -46,15 +46,15 @@ export const SignInModal = () => {
         if (!open) dismissSignIn();
       }}
     >
-      <DialogContent className="border-slate-800 bg-slate-950 text-slate-100 sm:max-w-md">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
         <DialogHeader>
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
             <Satellite size={22} />
           </div>
           <DialogTitle className="text-center text-xl">
             Sign in to Outsights
           </DialogTitle>
-          <DialogDescription className="text-center text-sm text-slate-400">
+          <DialogDescription className="text-center text-sm text-muted-foreground">
             {signInReason ??
               "Sign in to unlock AI-guided insights and chat with the spatial copilot."}
           </DialogDescription>
@@ -65,7 +65,7 @@ export const SignInModal = () => {
             type="button"
             onClick={handleGoogle}
             disabled={!isConfigured || isStartingOAuth}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground shadow-sm transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isStartingOAuth ? (
               <Loader2 size={18} className="animate-spin" />
@@ -86,8 +86,8 @@ export const SignInModal = () => {
             </p>
           )}
 
-          <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-500">
-            <ShieldCheck size={12} className="text-emerald-500" />
+          <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-muted-foreground">
+            <ShieldCheck size={12} className="text-primary" />
             <span>
               We only request your name, email, and avatar from Google.
             </span>

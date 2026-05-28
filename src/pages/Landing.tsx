@@ -240,7 +240,7 @@ const Landing = () => {
               <span className="text-sm font-bold tracking-widest uppercase text-foreground">Outsights</span>
               <span className="text-xs text-muted-foreground ml-2">Geospatial Intelligence</span>
             </div>
-            <a href="mailto:contact@outsights.io" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="mailto:founder@tryoutsights.dev" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Contact Us
             </a>
           </div>

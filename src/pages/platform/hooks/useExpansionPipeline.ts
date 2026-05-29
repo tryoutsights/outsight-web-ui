@@ -45,11 +45,7 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
   }, [mode, datasets.length]);
 
   const runExpansionQuery = useCallback(
-    async (newBbox: BBox) => {
-      if (!selectedSlug) {
-        setExpError("Select a dataset first.");
-        return;
-      }
+    async (newBbox: BBox, targetYear?: number) => {
       setExpError(null);
       setExpLoading(true);
       const bboxTuple: [number, number, number, number] = [
@@ -71,7 +67,13 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
         const years = mapResult.years ?? [];
         setExpAnalytics(analyticsResult);
         const displayName =
-          datasets.find((d) => d.slug === selectedSlug)?.display_name ?? selectedSlug;
+          datasets.find((d) => d.slug === selectedSlug)?.display_name || "Custom Area";
+          
+        let initialYearIdx = years.length ? years.length - 1 : 0;
+        if (targetYear !== undefined && years.includes(targetYear)) {
+          initialYearIdx = years.indexOf(targetYear);
+        }
+        
         addLayer({
           kind: "expansion",
           id: "expansion-current",
@@ -79,7 +81,7 @@ export function useExpansionPipeline({ mode, mapLayers, addLayer, removeLayer }:
           visible: true,
           cells: mapResult.cells ?? [],
           years,
-          selectedYearIdx: years.length ? years.length - 1 : 0,
+          selectedYearIdx: initialYearIdx,
           bbox: bboxTuple,
         } satisfies LayerDef);
       } catch (e) {

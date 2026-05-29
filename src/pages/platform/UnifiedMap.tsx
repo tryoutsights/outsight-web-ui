@@ -94,14 +94,33 @@ export default function UnifiedMap({
 
   // First symbol layer ID for interleaving under labels
   const [firstSymbolId, setFirstSymbolId] = useState<string | undefined>(undefined);
+  // First road layer ID for interleaving under roads
+  const [firstRoadId, setFirstRoadId] = useState<string | undefined>(undefined);
 
-  const handleMapLoad = useCallback((e: { target: unknown }) => {
-    const map = e.target as { getStyle: () => { layers?: { type: string; id: string }[] } };
+  const handleMapStyleData = useCallback((e: { target: unknown }) => {
+    const map = e.target as {
+      getStyle: () => { layers?: { type: string; id: string; "source-layer"?: string }[] };
+    };
     if (!map) return;
     const style = map.getStyle();
     if (style && style.layers) {
-      const firstSymbol = style.layers.find((l: { type: string; id: string }) => l.type === "symbol");
+      const firstSymbol = style.layers.find((l) => l.type === "symbol");
       if (firstSymbol) setFirstSymbolId(firstSymbol.id);
+
+      const firstRoad = style.layers.find((l) => {
+        const idLower = l.id.toLowerCase();
+        const sourceLayerLower = (l["source-layer"] || "").toLowerCase();
+        return (
+          idLower.includes("road") ||
+          idLower.includes("tunnel") ||
+          idLower.includes("bridge") ||
+          idLower.includes("transport") ||
+          idLower.includes("highway") ||
+          sourceLayerLower.includes("transportation") ||
+          sourceLayerLower.includes("road")
+        );
+      });
+      if (firstRoad) setFirstRoadId(firstRoad.id);
     }
   }, []);
 
@@ -188,8 +207,6 @@ export default function UnifiedMap({
           image: layer.url,
           bounds: layer.bbox as [number, number, number, number],
           opacity: layer.opacity,
-          // @ts-expect-error deck.gl mapbox overlay supports beforeId
-          beforeId: firstSymbolId,
         })
       );
     } else if (layer.kind === "expansion" && layer.cells.length > 0) {
@@ -225,7 +242,7 @@ export default function UnifiedMap({
           highlightColor: [255, 255, 255, 60],
           updateTriggers: { getFillColor: [layer.years, selectedYear, layer.cumulativeMode] },
           // @ts-expect-error deck.gl mapbox overlay supports beforeId
-          beforeId: firstSymbolId,
+          beforeId: firstRoadId ?? firstSymbolId,
         })
       );
     }
@@ -254,8 +271,6 @@ export default function UnifiedMap({
         lineWidthUnits: "pixels",
         stroked: true,
         filled: true,
-        // @ts-expect-error deck.gl mapbox overlay supports beforeId
-        beforeId: firstSymbolId,
       })
     );
   }
@@ -285,12 +300,14 @@ export default function UnifiedMap({
         pitch={viewState.pitch}
         bearing={viewState.bearing}
         onMove={(evt) => handleViewStateChange({ viewState: evt.viewState })}
-        onLoad={handleMapLoad}
+        onStyleData={handleMapStyleData}
         scrollZoom={!drawMode}
         dragPan={!drawMode}
         doubleClickZoom={!drawMode}
       >
-        <DeckGLOverlay layers={deckLayers} interleaved={true} />
+        {firstSymbolId && (
+          <DeckGLOverlay layers={deckLayers} interleaved={true} />
+        )}
       </Map>
 
       {/* Imagery selection box + crosshair */}

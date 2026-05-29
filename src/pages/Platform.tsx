@@ -125,14 +125,20 @@ const Platform = () => {
     mode,
     setMode,
     setActiveTab,
+    coordinates,
     setCoordinates,
+    cloudCover,
     setCloudCover,
+    areaSize,
     setAreaSize,
+    band,
     setBand,
+    zoom,
     setZoom,
     setDateRange,
     requestSignIn,
     handleRetrieve,
+    runExpansionQuery,
   });
 
   const appendBotMessage = (text: string) => {

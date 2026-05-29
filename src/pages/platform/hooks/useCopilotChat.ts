@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type DynamicToolCall } from "ai";
 import { toast } from "sonner";
@@ -12,14 +12,20 @@ type Args = {
   setActiveTab: React.Dispatch<
     React.SetStateAction<"chat" | "controls" | "insights" | "layers">
   >;
+  coordinates: Coordinates;
   setCoordinates: React.Dispatch<React.SetStateAction<Coordinates>>;
+  cloudCover: number;
   setCloudCover: React.Dispatch<React.SetStateAction<number>>;
+  areaSize: number;
   setAreaSize: React.Dispatch<React.SetStateAction<number>>;
+  band: SpectralBand;
   setBand: React.Dispatch<React.SetStateAction<SpectralBand>>;
+  zoom: number;
   setZoom: React.Dispatch<React.SetStateAction<number>>;
   setDateRange: React.Dispatch<React.SetStateAction<DateRange>>;
   requestSignIn: (message?: string) => void;
   handleRetrieve: () => void;
+  runExpansionQuery: (bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number }) => void;
 };
 
 type MapUpdateInput = {
@@ -38,18 +44,45 @@ export function useCopilotChat({
   mode,
   setMode,
   setActiveTab,
+  coordinates,
   setCoordinates,
+  cloudCover,
   setCloudCover,
+  areaSize,
   setAreaSize,
+  band,
   setBand,
+  zoom,
   setZoom,
   setDateRange,
   requestSignIn,
   handleRetrieve,
+  runExpansionQuery,
 }: Args) {
   const [chatInput, setChatInput] = useState("");
+  const lastUpdatedParamsRef = useRef<MapUpdateInput | null>(null);
+
+  const computeBBox = (lat: number, lng: number, areaSize: number) => {
+    const sideKm = Math.sqrt(areaSize);
+    const halfSide = sideKm / 2;
+    const latDelta = halfSide / 111;
+    const lngDelta = halfSide / (111 * Math.cos((lat * Math.PI) / 180));
+    return {
+      minLat: lat - latDelta,
+      maxLat: lat + latDelta,
+      minLon: lng - lngDelta,
+      maxLon: lng + lngDelta,
+    };
+  };
 
   const { messages, status, setMessages, sendMessage, addToolOutput } = useChat({
+    body: {
+      lat: coordinates.lat,
+      lng: coordinates.lng,
+      zoom,
+      mode,
+      areaSize,
+    },
     transport: new DefaultChatTransport({
       api: "/api/copilot/chat",
       fetch: async (input, init) => {
@@ -67,6 +100,7 @@ export function useCopilotChat({
 
       if (dyn.toolName === "update_map_parameters") {
         const args = (dyn.input ?? {}) as MapUpdateInput;
+        lastUpdatedParamsRef.current = args;
 
         if (args.mode === "expansion") {
           setMode("expansion");
@@ -106,14 +140,48 @@ export function useCopilotChat({
         if (args.startDate && args.endDate) {
           setDateRange({ startDate: args.startDate, endDate: args.endDate });
         }
-      } else if (dyn.toolName === "trigger_analysis") {
-        if (mode === "expansion") {
-          toast.info(
-            "Draw a bounding box on the map to run an expansion query.",
-          );
+      } else if (dyn.toolName === "plot_expansion_data") {
+        const args = (dyn.input ?? {}) as any;
+        setMode("expansion");
+        setActiveTab("chat"); // keep user in chat panel to see summary!
+        
+        let targetLat = coordinates.lat;
+        let targetLng = coordinates.lng;
+        let targetArea = args.areaSize || areaSize;
+
+        if (args.lat !== undefined && args.lng !== undefined) {
+          targetLat = clamp(args.lat, -90, 90);
+          targetLng = clamp(args.lng, -180, 180);
+          setCoordinates({ lat: targetLat, lng: targetLng });
+          setAreaSize(nearestAreaOption(targetArea));
+          setZoom(11);
         } else {
-          handleRetrieve();
+          if (args.areaSize !== undefined) {
+            setAreaSize(nearestAreaOption(args.areaSize));
+          }
         }
+
+        const bbox = computeBBox(targetLat, targetLng, targetArea);
+        runExpansionQuery(bbox, args.end_year);
+
+      } else if (dyn.toolName === "trigger_analysis") {
+        // Since trigger_analysis is strictly for satellite imagery / STAC,
+        // force the mode to imagery and fetch, ignoring any stale React state closures
+        // if update_map_parameters was called in the same LLM step.
+        setMode("imagery");
+        
+        const overrides: any = {};
+        if (lastUpdatedParamsRef.current) {
+          const params = lastUpdatedParamsRef.current;
+          if (params.lat !== undefined) overrides.lat = params.lat;
+          if (params.lng !== undefined) overrides.lon = params.lng;
+          if (params.areaSize !== undefined) overrides.areaSize = params.areaSize;
+          if (params.startDate !== undefined) overrides.startDate = params.startDate;
+          if (params.endDate !== undefined) overrides.endDate = params.endDate;
+          if (params.cloudCover !== undefined) overrides.maxCloudCover = params.cloudCover;
+        }
+        handleRetrieve(overrides);
+        lastUpdatedParamsRef.current = null;
       }
 
       // Record a result so the assistant tool call has a matching tool reply
@@ -141,11 +209,15 @@ export function useCopilotChat({
 
   const handleChatSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
+    lastUpdatedParamsRef.current = null;
     submit(chatInput);
     setChatInput("");
   };
 
-  const handlePromptClick = (text: string) => submit(text);
+  const handlePromptClick = (text: string) => {
+    lastUpdatedParamsRef.current = null;
+    submit(text);
+  };
 
   return {
     messages,
